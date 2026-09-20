@@ -646,7 +646,8 @@ function renderHome() {
       </div>
       <div class="tstar ${best ? 'gold' : ''}">${starText}</div>
     `;
-    div.onclick = () => startTopic(t.id);
+    div.addEventListener('click', () => startTopic(t.id), { passive: true });
+    div.addEventListener('touchend', e => { e.preventDefault(); startTopic(t.id); }, { passive: false });
     grid.appendChild(div);
   });
   updateTotalProgress();
@@ -727,7 +728,8 @@ function renderQuestion() {
     const btn = document.createElement("button");
     btn.className = "option";
     btn.textContent = label;
-    btn.onclick = () => answer(i, btn);
+    btn.type = "button";
+    btn.addEventListener('click', () => answer(i, btn), { passive: true });
     opts.appendChild(btn);
   });
 
@@ -766,14 +768,14 @@ function showFeedback(good, ans) {
   fb.classList.remove("hidden");
 }
 
-document.getElementById("next-btn").onclick = () => {
+document.getElementById("next-btn").addEventListener('click', () => {
   currentIdx++;
   if (currentIdx >= currentQs.length) {
     finishTopic();
   } else {
     renderQuestion();
   }
-};
+});
 
 function finishTopic() {
   setBest(currentTopic.id, currentScore);
@@ -872,20 +874,20 @@ function burstConfettiBig() {
 // NAV
 // ============================================================
 
-document.getElementById("back-btn").onclick = () => {
+document.getElementById("back-btn").addEventListener('click', () => {
   if (confirm("要離開呢個課題嗎？")) {
     goHome();
   }
-};
-document.getElementById("back-home").onclick = goHome;
-document.getElementById("back-home-2").onclick = goHome;
-document.getElementById("retry-btn").onclick = () => startTopic(currentTopic.id);
-document.getElementById("reset-btn").onclick = () => {
+});
+document.getElementById("back-home").addEventListener('click', goHome);
+document.getElementById("back-home-2").addEventListener('click', goHome);
+document.getElementById("retry-btn").addEventListener('click', () => startTopic(currentTopic.id));
+document.getElementById("reset-btn").addEventListener('click', () => {
   if (confirm("確定要重設所有星星嗎？")) {
     localStorage.removeItem(STORE_KEY);
     renderHome();
   }
-};
+});
 
 function goHome() {
   document.getElementById("game-view").classList.add("hidden");
