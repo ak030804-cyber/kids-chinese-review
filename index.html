@@ -1,0 +1,904 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#fbf7ef">
+<title>認字溫習樂園 · 中文複習</title>
+<style>
+@import url("https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Nunito:wght@400;600;700;800&family=Noto+Sans+TC:wght@500;700;800&display=swap");
+
+:root {
+  --bg: #fbf7ef;
+  --bg-2: #f3ecdf;
+  --surface: #ffffff;
+  --surface-2: #f6f1e6;
+  --ink: #2b2a26;
+  --muted: #8c8677;
+  --line: #e9e2d3;
+  --green: #5f9e63;
+  --green-deep: #3f7a49;
+  --orange: #e08a4e;
+  --blue: #6a9bcc;
+  --yellow: #f2c14e;
+  --red: #d9663f;
+  --purple: #8a76c4;
+  --teal: #4ecdc4;
+  --radius: 22px;
+  --radius-lg: 30px;
+  --shadow: 0 14px 34px -16px rgba(70, 58, 34, 0.35);
+  --shadow-sm: 0 6px 16px -10px rgba(70, 58, 34, 0.4);
+  --font: "Outfit", ui-rounded, "Nunito", "Noto Sans TC", system-ui, -apple-system, "PingFang TC", "Microsoft JhengHei", sans-serif;
+}
+
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { margin: 0; padding: 0; }
+body {
+  font-family: var(--font);
+  background:
+    radial-gradient(1200px 600px at 50% -10%, #fffdf7 0%, transparent 60%),
+    linear-gradient(180deg, var(--bg) 0%, var(--bg-2) 100%);
+  color: var(--ink);
+  min-height: 100dvh;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-feature-settings: "palt";
+  overflow-x: hidden;
+}
+
+.app {
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+  min-height: 100dvh;
+  padding: 18px 18px 24px;
+  position: relative;
+}
+
+.hidden { display: none !important; }
+
+/* ---------- Header ---------- */
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.topbar .who { display: flex; align-items: center; gap: 12px; }
+.avatar {
+  width: 46px; height: 46px; border-radius: 50%;
+  display: grid; place-items: center;
+  color: #fff; font-weight: 800; font-size: 20px;
+  box-shadow: var(--shadow-sm);
+  background: var(--orange);
+}
+.greet { font-size: 13px; color: var(--muted); }
+.name { font-size: 19px; font-weight: 700; letter-spacing: -0.01em; }
+
+.iconbtn {
+  border: 1px solid var(--line);
+  background: var(--surface);
+  border-radius: 14px;
+  width: 44px; height: 44px;
+  display: grid; place-items: center;
+  color: var(--ink);
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+  font-family: inherit;
+}
+.iconbtn:active { transform: scale(0.94); }
+
+/* ---------- Today card ---------- */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+  padding: 18px 18px 20px;
+}
+
+.hero-card {
+  background: linear-gradient(135deg, #5f9e63 0%, #3f7a49 100%);
+  color: #fff;
+  border: none;
+  position: relative;
+  overflow: hidden;
+}
+.hero-card::before {
+  content: "📖";
+  position: absolute;
+  right: -12px; bottom: -22px;
+  font-size: 130px;
+  opacity: 0.18;
+  transform: rotate(-12deg);
+}
+.hero-card .hero-greet { font-size: 14px; opacity: 0.85; }
+.hero-card .hero-title { font-size: 22px; font-weight: 800; margin-top: 4px; letter-spacing: -0.01em; }
+.hero-card .hero-sub { font-size: 13px; opacity: 0.85; margin-top: 6px; }
+.hero-card .ring-mini {
+  margin-top: 14px;
+  display: flex; align-items: center; gap: 10px;
+  background: rgba(255, 255, 255, 0.18);
+  border-radius: 999px;
+  padding: 8px 14px;
+  font-size: 13px; font-weight: 700;
+  width: fit-content;
+}
+
+.section-label {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--muted);
+  letter-spacing: 0.06em;
+  margin: 22px 4px 10px;
+}
+
+/* ---------- Topic list ---------- */
+.topic-grid { display: grid; gap: 12px; }
+.topic {
+  display: flex; align-items: center; gap: 14px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 16px 16px;
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+  transition: transform 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+  overflow: hidden;
+}
+.topic:active { transform: scale(0.98); }
+.topic .tbadge {
+  width: 50px; height: 50px; border-radius: 16px;
+  display: grid; place-items: center; color: #fff;
+  font-size: 24px; font-weight: 800; flex: none;
+  box-shadow: 0 6px 14px -8px rgba(0, 0, 0, 0.4);
+}
+.topic .tinfo { flex: 1; min-width: 0; }
+.topic .tname { font-weight: 800; font-size: 16px; letter-spacing: -0.01em; }
+.topic .tdesc { font-size: 12.5px; color: var(--muted); margin-top: 2px; }
+.topic .tstar {
+  font-size: 13px; font-weight: 700; color: var(--muted);
+  display: flex; align-items: center; gap: 4px;
+}
+.topic .tstar.gold { color: #b8852c; }
+
+/* ---------- Game ---------- */
+.learn-top {
+  display: flex; align-items: center; gap: 14px; margin-bottom: 14px;
+}
+.progress-lane {
+  flex: 1; height: 12px; border-radius: 999px;
+  background: var(--surface-2); border: 1px solid var(--line); overflow: hidden;
+}
+.progress-lane > i {
+  display: block; height: 100%; width: 0;
+  background: linear-gradient(90deg, var(--green), #7cc07f);
+  transition: width 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.count {
+  font-weight: 800; color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  font-size: 14px;
+}
+.backbtn {
+  border: 1px solid var(--line);
+  background: var(--surface);
+  border-radius: 14px;
+  width: 40px; height: 40px;
+  display: grid; place-items: center;
+  cursor: pointer; box-shadow: var(--shadow-sm);
+  font-family: inherit; font-size: 18px;
+  color: var(--ink);
+}
+
+.qtype-tag {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: var(--surface-2); border: 1px solid var(--line);
+  border-radius: 999px; padding: 6px 12px;
+  font-size: 12.5px; font-weight: 700; color: var(--muted);
+}
+
+.q-card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+  padding: 26px 22px;
+  margin-top: 12px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.q-prompt { font-size: 14px; color: var(--muted); margin-bottom: 14px; font-weight: 700; }
+.q-char-lg {
+  font-size: 80px; font-weight: 800; letter-spacing: -0.02em;
+  line-height: 1.1; margin: 6px 0;
+}
+.q-jyut {
+  color: var(--muted); font-size: 16px; margin-top: 4px;
+  font-weight: 700; letter-spacing: 0.02em;
+}
+.q-sentence {
+  font-size: 24px; font-weight: 700; letter-spacing: -0.01em;
+  line-height: 1.5; margin: 14px 0;
+}
+.q-sentence .blank {
+  display: inline-block; min-width: 50px; padding: 0 8px;
+  border-bottom: 3px solid var(--orange);
+  margin: 0 2px;
+}
+.q-chars-row {
+  display: flex; flex-wrap: wrap; gap: 10px;
+  justify-content: center; margin-top: 14px;
+}
+.q-char-card {
+  width: 80px; height: 90px;
+  border: 2px solid var(--line);
+  border-radius: 16px;
+  display: grid; place-items: center;
+  font-size: 44px; font-weight: 800;
+  background: var(--surface-2);
+  transition: transform 0.15s;
+}
+.q-pic {
+  width: 100px; height: 100px; margin: 4px auto 8px;
+  display: grid; place-items: center;
+  font-size: 64px; line-height: 1;
+  background: radial-gradient(120% 120% at 50% 20%, #fffdf6, #f0ead9);
+  border: 1px solid var(--line); border-radius: 24px;
+  box-shadow: var(--shadow-sm);
+}
+
+.options {
+  display: grid; gap: 10px; margin-top: 16px;
+}
+.option {
+  border: 1.5px solid var(--line);
+  background: var(--surface);
+  border-radius: 18px;
+  padding: 16px 16px;
+  font-size: 19px; font-weight: 700;
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  font-family: inherit;
+  color: var(--ink);
+  text-align: center;
+  transition: transform 0.15s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s, background 0.2s;
+  letter-spacing: 0.02em;
+}
+.option:active { transform: scale(0.98); }
+.option.right {
+  border-color: var(--green);
+  background: #eef8ee;
+  color: var(--green-deep);
+}
+.option.wrong {
+  border-color: var(--red);
+  background: #fdeee9;
+  color: var(--red);
+}
+.option.dim { opacity: 0.45; }
+
+.feedback {
+  margin-top: 14px;
+  border-radius: 16px;
+  padding: 14px 16px;
+  font-weight: 700;
+  font-size: 14px;
+  display: flex; align-items: center; gap: 10px;
+  animation: pop 0.32s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.feedback.good {
+  background: #eef8ee; color: var(--green-deep);
+  border: 1px solid #cfe7cf;
+}
+.feedback.bad {
+  background: #fdeee9; color: var(--red);
+  border: 1px solid #f5d3c8;
+}
+.feedback .ans { font-weight: 800; }
+
+.next-btn {
+  margin-top: 14px;
+  border: none;
+  border-radius: 18px;
+  padding: 16px 20px;
+  font-family: inherit;
+  font-size: 17px; font-weight: 800;
+  color: #fff;
+  background: var(--green);
+  cursor: pointer;
+  width: 100%;
+  box-shadow: 0 12px 24px -14px rgba(63, 122, 73, 0.9);
+  transition: transform 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+}
+.next-btn:active { transform: scale(0.97); }
+.next-btn[disabled] { opacity: 0.4; cursor: default; }
+
+/* ---------- Result ---------- */
+.result-card {
+  text-align: center;
+  padding: 30px 22px;
+}
+.result-emoji { font-size: 78px; line-height: 1; }
+.result-title { font-size: 24px; font-weight: 800; margin-top: 10px; letter-spacing: -0.02em; }
+.result-sub { color: var(--muted); font-size: 14px; margin-top: 4px; }
+.result-score {
+  display: inline-flex; align-items: baseline; gap: 6px;
+  margin: 20px 0 8px;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 10px 22px;
+  font-variant-numeric: tabular-nums;
+}
+.result-score .v { font-size: 30px; font-weight: 800; color: var(--green-deep); }
+.result-score .t { font-size: 16px; color: var(--muted); }
+.stars {
+  display: flex; justify-content: center; gap: 8px;
+  margin: 18px 0 10px;
+  font-size: 42px;
+}
+.stars .star { transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); }
+.stars .star.earned { animation: starpop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+.stars .star.earned:nth-child(2) { animation-delay: 0.2s; }
+.stars .star.earned:nth-child(3) { animation-delay: 0.4s; }
+@keyframes starpop {
+  0% { transform: scale(0) rotate(-180deg); opacity: 0; }
+  60% { transform: scale(1.3) rotate(10deg); }
+  100% { transform: scale(1) rotate(0); opacity: 1; }
+}
+
+.action-row {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+  margin-top: 20px;
+}
+.action-row .btn {
+  border: none; border-radius: 16px;
+  padding: 14px 16px;
+  font-family: inherit; font-size: 15px; font-weight: 800;
+  cursor: pointer;
+  transition: transform 0.15s;
+}
+.action-row .btn:active { transform: scale(0.97); }
+.btn-primary { background: var(--green); color: #fff; box-shadow: 0 12px 24px -14px rgba(63, 122, 73, 0.9); }
+.btn-ghost { background: var(--surface); color: var(--ink); border: 1px solid var(--line); box-shadow: var(--shadow-sm); }
+
+/* ---------- Confetti ---------- */
+.confetti-piece {
+  position: fixed;
+  width: 10px; height: 14px;
+  pointer-events: none;
+  z-index: 50;
+}
+
+/* ---------- Animations ---------- */
+.pop { animation: pop 0.32s cubic-bezier(0.34, 1.56, 0.64, 1); }
+@keyframes pop {
+  0% { transform: scale(0.92); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+.shake { animation: shake 0.36s ease-in-out; }
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-6px); }
+  75% { transform: translateX(6px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- ============ HOME VIEW ============ -->
+  <div id="home-view">
+    <div class="topbar">
+      <div class="who">
+        <div class="avatar">細</div>
+        <div>
+          <div class="greet">溫習時間</div>
+          <div class="name">認字溫習樂園</div>
+        </div>
+      </div>
+      <button class="iconbtn" id="reset-btn" title="重設">↻</button>
+    </div>
+
+    <div class="card hero-card">
+      <div class="hero-greet">課題範圍</div>
+      <div class="hero-title">七個課題 · 邊玩邊學</div>
+      <div class="hero-sub">每個課題有 8 條題目，挑戰自己拎星星 ⭐</div>
+      <div class="ring-mini" id="total-progress">⭐ 0 / 21 粒星</div>
+    </div>
+
+    <div class="section-label">選擇課題</div>
+    <div class="topic-grid" id="topic-grid"></div>
+
+    <div style="text-align:center; margin-top: 22px; font-size: 12px; color: var(--muted);">
+      一個課題完成可得 1–3 粒星 · 答得快答啱拎滿分
+    </div>
+  </div>
+
+  <!-- ============ GAME VIEW ============ -->
+  <div id="game-view" class="hidden">
+    <div class="learn-top">
+      <button class="backbtn" id="back-btn">←</button>
+      <div class="progress-lane"><i id="progress-bar"></i></div>
+      <div class="count" id="q-counter">0 / 8</div>
+    </div>
+
+    <div class="q-card" id="q-card">
+      <!-- dynamically rendered -->
+    </div>
+
+    <div class="options" id="options"></div>
+
+    <div id="feedback" class="feedback hidden"></div>
+
+    <button class="next-btn hidden" id="next-btn">下一題 →</button>
+  </div>
+
+  <!-- ============ RESULT VIEW ============ -->
+  <div id="result-view" class="hidden">
+    <div class="topbar">
+      <button class="backbtn" id="back-home">←</button>
+      <div style="flex:1"></div>
+    </div>
+    <div class="card result-card">
+      <div class="result-emoji" id="r-emoji">🎉</div>
+      <div class="result-title" id="r-title">完成晒！</div>
+      <div class="result-sub" id="r-sub"></div>
+      <div class="result-score">
+        <span class="v" id="r-score">0</span><span class="t">/ 8 分</span>
+      </div>
+      <div class="stars" id="r-stars"></div>
+      <div class="action-row">
+        <button class="btn-ghost" id="retry-btn">再玩一次</button>
+        <button class="btn-primary" id="back-home-2">揀其他課題</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ============================================================
+// DATA — 7 個課題 · 全部源自溫習 worksheet
+// ============================================================
+
+const TOPICS = [
+  {
+    id: "tone",
+    name: "聲調變化",
+    desc: "分辨廣東話四聲",
+    icon: "🎵",
+    color: "#6a9bcc",
+    qs: [
+      { display: "媽", sub: "maa¹", prompt: "呢個字係邊個聲調？", opts: ["陰平聲","陽平聲","上聲","去聲"], a: 0 },
+      { display: "茶", sub: "caa⁴", prompt: "呢個字係邊個聲調？", opts: ["陰平聲","陽平聲","上聲","去聲"], a: 3 },
+      { display: "水", sub: "seoi²", prompt: "呢個字係邊個聲調？", opts: ["陰平聲","陽平聲","上聲","去聲"], a: 1 },
+      { display: "火", sub: "fo²", prompt: "呢個字係邊個聲調？", opts: ["陰平聲","陽平聲","上聲","去聲"], a: 1 },
+      { display: "花", sub: "faa¹", prompt: "呢個字係邊個聲調？", opts: ["陰平聲","陽平聲","上聲","去聲"], a: 0 },
+      { display: "兔", sub: "tou³", prompt: "呢個字係邊個聲調？", opts: ["陰平聲","陽平聲","上聲","去聲"], a: 2 },
+      { display: "魚", sub: "jyu⁴", prompt: "呢個字係邊個聲調？", opts: ["陰平聲","陽平聲","上聲","去聲"], a: 3 },
+      { display: "雞", sub: "gai¹", prompt: "呢個字係邊個聲調？", opts: ["陰平聲","陽平聲","上聲","去聲"], a: 0 }
+    ]
+  },
+  {
+    id: "homo",
+    name: "同音字",
+    desc: "揀啱同音異字",
+    icon: "🔤",
+    color: "#e08a4e",
+    qs: [
+      { prompt: "揀啱字填入句中：", sentence: "我去公<span class='blank'>___</span>散步。", opts: ["園","原","圓","緣"], a: 0 },
+      { prompt: "揀啱字填入句中：", sentence: "<span class='blank'>___</span>咗功課先出去玩。", opts: ["完","玩"], a: 0 },
+      { prompt: "揀啱字填入句中：", sentence: "佢<span class='blank'>___</span>有時間陪我。", opts: ["還","換","緩"], a: 0 },
+      { prompt: "揀啱字填入句中：", sentence: "公<span class='blank'>___</span>員返工去。", opts: ["員","院","圓","援"], a: 0 },
+      { prompt: "揀啱字填入句中：", sentence: "<span class='blank'>___</span>望你快啲康復。", opts: ["願","原","源"], a: 0 },
+      { prompt: "揀啱字填入句中：", sentence: "<span class='blank'>___</span>來係咁嘅。", opts: ["原","圓","園","緣"], a: 0 },
+      { prompt: "揀啱字填入句中：", sentence: "故事<span class='blank'>___</span>說好聽。", opts: ["傳","轉","專"], a: 0 },
+      { prompt: "揀啱字填入句中：", sentence: "佢係一個<span class='blank'>___</span>家。", opts: ["專","轉","尊"], a: 0 }
+    ]
+  },
+  {
+    id: "similar",
+    name: "形近字",
+    desc: "分辨相似部件",
+    icon: "✏️",
+    color: "#d9663f",
+    qs: [
+      { prompt: "邊個係「灬」(火字底)？", chars: ["灬","犬","瓜","貝"], a: 0 },
+      { prompt: "邊個係「犬」(反犬旁)？", chars: ["灬","犬","瓜","貝"], a: 1 },
+      { prompt: "邊個係「瓜」部件？", chars: ["瓜","瓞","瓣","瓢"], a: 0 },
+      { prompt: "邊個係「貝」(貝字底)？", chars: ["貝","貞","頁","見"], a: 0 },
+      { prompt: "邊個係「瓦」部件？", chars: ["瓦","瓦","瓦","瓦"], a: 0 },
+      { prompt: "邊個係「攵」(反文旁)？", chars: ["攵","攴","文","亠"], a: 0 },
+      { prompt: "邊個係「礻」(示字旁)？", chars: ["礻","衤","祀","示"], a: 0 },
+      { prompt: "邊個字有「灬」部件？", chars: ["熱","貓","狗","馬"], a: 0 }
+    ]
+  },
+  {
+    id: "measure",
+    name: "量詞疊字",
+    desc: "「一X一X」嘅量詞",
+    icon: "📦",
+    color: "#5f9e63",
+    qs: [
+      { prompt: "一<span class='blank'>___</span>一<span class='blank'>___</span>嘅衫", opts: ["件","雙","條","個"], a: 0 },
+      { prompt: "一<span class='blank'>___</span>一<span class='blank'>___</span>嘅鞋", opts: ["件","雙","條","個"], a: 1 },
+      { prompt: "一<span class='blank'>___</span>一<span class='blank'>___</span>嘅魚", opts: ["件","條","隻","個"], a: 1 },
+      { prompt: "一<span class='blank'>___</span>一<span class='blank'>___</span>嘅紙", opts: ["件","條","張","個"], a: 2 },
+      { prompt: "一<span class='blank'>___</span>一<span class='blank'>___</span>嘅波", opts: ["件","條","張","個"], a: 3 },
+      { prompt: "一<span class='blank'>___</span>一<span class='blank'>___</span>嘅樹", opts: ["條","件","個","棵"], a: 3 },
+      { prompt: "一<span class='blank'>___</span>一<span class='blank'>___</span>嘅筆", opts: ["件","條","張","枝"], a: 3 },
+      { prompt: "一<span class='blank'>___</span>一<span class='blank'>___</span>嘅蛋", opts: ["個","件","條","隻"], a: 3 }
+    ]
+  },
+  {
+    id: "verb",
+    name: "動詞疊字",
+    desc: "動詞重疊嘅寫法",
+    icon: "🏃",
+    color: "#4ecdc4",
+    qs: [
+      { prompt: "「看」嘅疊字寫法係？", display: "看", opts: ["看","看看","看一看","睇睇"], a: 1 },
+      { prompt: "「聽」嘅疊字寫法係？", display: "聽", opts: ["聽","聽聽","聽一聽","聽咗"], a: 1 },
+      { prompt: "「想」嘅疊字寫法係？", display: "想", opts: ["想","想想","想一想","想吓"], a: 1 },
+      { prompt: "「笑」嘅疊字寫法係？", display: "笑", opts: ["笑","笑笑","笑一笑","笑吓"], a: 1 },
+      { prompt: "「說」嘅疊字寫法係？", display: "說", opts: ["說","說說","說一說","說吓"], a: 1 },
+      { prompt: "「讀」嘅疊字寫法係？", display: "讀", opts: ["讀","讀讀","讀一讀","讀吓"], a: 1 },
+      { prompt: "「寫」嘅疊字寫法係？", display: "寫", opts: ["寫","寫寫","寫一寫","寫吓"], a: 1 },
+      { prompt: "「跑」嘅疊字寫法係？", display: "跑", opts: ["跑","跑跑","跑一跑","跑吓"], a: 1 }
+    ]
+  },
+  {
+    id: "radical",
+    name: "部首結構",
+    desc: "認吓常用部件",
+    icon: "🧩",
+    color: "#8a76c4",
+    qs: [
+      { prompt: "「思」字嘅部首係邊個？", display: "思", opts: ["心字底","寶蓋頭","提手旁","草字頭"], a: 0 },
+      { prompt: "「字」字嘅部首係邊個？", display: "字", opts: ["心字底","寶蓋頭","單人旁","草字頭"], a: 1 },
+      { prompt: "「仁」字嘅部首係邊個？", display: "仁", opts: ["單人旁","雙人旁","提手旁","言字旁"], a: 0 },
+      { prompt: "「提」字嘅部首係邊個？", display: "提", opts: ["單人旁","雙人旁","提手旁","心字底"], a: 2 },
+      { prompt: "「花」字嘅部首係邊個？", display: "花", opts: ["寶蓋頭","心字底","草字頭","言字旁"], a: 2 },
+      { prompt: "「說」字嘅部首係邊個？", display: "說", opts: ["單人旁","言字旁","草字頭","心字底"], a: 1 },
+      { prompt: "「安」字嘅部首係邊個？", display: "安", opts: ["寶蓋頭","單人旁","心字底","提手旁"], a: 0 },
+      { prompt: "「請」字嘅部首係邊個？", display: "請", opts: ["提手旁","言字旁","單人旁","寶蓋頭"], a: 1 }
+    ]
+  },
+  {
+    id: "sentence",
+    name: "句式練習",
+    desc: "比/一邊/不但/既/愈",
+    icon: "📝",
+    color: "#f2c14e",
+    qs: [
+      { prompt: "揀啱句式填入：", sentence: "哥哥 <span class='blank'>___</span> 我 <span class='blank'>___</span> 高。", opts: ["比 / 更","仲 / 更","比 / 仲","仲 / 仲"], a: 0 },
+      { prompt: "揀啱句式填入：", sentence: "媽媽 <span class='blank'>___</span> 煮飯 <span class='blank'>___</span> 聽歌。", opts: ["不但 / 而且","既 / 也","一邊 / 一邊","愈 / 愈"], a: 2 },
+      { prompt: "揀啱句式填入：", sentence: "小明 <span class='blank'>___</span> 叻 <span class='blank'>___</span> 勤力。", opts: ["不但 / 而且","既 / 也","一邊 / 一邊","比 / 更"], a: 0 },
+      { prompt: "揀啱句式填入：", sentence: "佢 <span class='blank'>___</span> 叻 <span class='blank'>___</span> 勤力。", opts: ["比 / 更","既 / 也","一邊 / 一邊","愈 / 愈"], a: 1 },
+      { prompt: "揀啱句式填入：", sentence: "你 <span class='blank'>___</span> 練習 <span class='blank'>___</span> 叻。", opts: ["比 / 更","一邊 / 一邊","愈 / 愈","既 / 也"], a: 2 },
+      { prompt: "揀啱句式填入：", sentence: "姐姐 <span class='blank'>___</span> 妹妹 <span class='blank'>___</span> 靚。", opts: ["比 / 更","既 / 也","一邊 / 一邊","不但 / 而且"], a: 0 },
+      { prompt: "揀啱句式填入：", sentence: "爸爸 <span class='blank'>___</span> 睇報紙 <span class='blank'>___</span> 飲茶。", opts: ["不但 / 而且","既 / 也","一邊 / 一邊","比 / 更"], a: 2 },
+      { prompt: "揀啱句式填入：", sentence: "佢 <span class='blank'>___</span> 讀書 <span class='blank'>___</span> 運動。", opts: ["比 / 更","不但 / 而且","一邊 / 一邊","愈 / 愈"], a: 1 }
+    ]
+  }
+];
+
+const STAR_THRESHOLDS = [0.95, 0.75, 0.5]; // 3 / 2 / 1 star
+
+// ============================================================
+// STATE — localStorage 儲存每課題最佳成績
+// ============================================================
+
+const STORE_KEY = "kcr_state_v1";
+
+function loadState() {
+  try {
+    const s = JSON.parse(localStorage.getItem(STORE_KEY) || "{}");
+    return s.best || {};
+  } catch { return {}; }
+}
+function saveState(state) {
+  localStorage.setItem(STORE_KEY, JSON.stringify({ best: state.best }));
+}
+function getBest(topicId) {
+  const s = loadState();
+  return s.best[topicId] || 0;
+}
+function setBest(topicId, score) {
+  const s = loadState();
+  s.best[topicId] = Math.max(s.best[topicId] || 0, score);
+  saveState(s);
+}
+
+// ============================================================
+// HOME
+// ============================================================
+
+function renderHome() {
+  const grid = document.getElementById("topic-grid");
+  grid.innerHTML = "";
+  TOPICS.forEach(t => {
+    const best = getBest(t.id);
+    const total = t.qs.length;
+    const stars = best ? computeStars(best, total) : 0;
+    const starText = best
+      ? `⭐ ${best}/${total}`
+      : `未挑戰`;
+    const div = document.createElement("div");
+    div.className = "topic pop";
+    div.innerHTML = `
+      <div class="tbadge" style="background:${t.color}">${t.icon}</div>
+      <div class="tinfo">
+        <div class="tname">${t.name}</div>
+        <div class="tdesc">${t.desc}</div>
+      </div>
+      <div class="tstar ${best ? 'gold' : ''}">${starText}</div>
+    `;
+    div.onclick = () => startTopic(t.id);
+    grid.appendChild(div);
+  });
+  updateTotalProgress();
+}
+
+function updateTotalProgress() {
+  const total = TOPICS.length;
+  const earned = TOPICS.reduce((sum, t) => {
+    const b = getBest(t.id);
+    return sum + (b ? computeStars(b, t.qs.length) : 0);
+  }, 0);
+  const max = total * 3;
+  document.getElementById("total-progress").textContent = `⭐ ${earned} / ${max} 粒星`;
+}
+
+function computeStars(score, total) {
+  const ratio = score / total;
+  if (ratio >= STAR_THRESHOLDS[0]) return 3;
+  if (ratio >= STAR_THRESHOLDS[1]) return 2;
+  if (ratio >= STAR_THRESHOLDS[2]) return 1;
+  return 0;
+}
+
+// ============================================================
+// GAME
+// ============================================================
+
+let currentTopic = null;
+let currentQs = [];
+let currentIdx = 0;
+let currentScore = 0;
+let answered = false;
+
+function startTopic(id) {
+  currentTopic = TOPICS.find(t => t.id === id);
+  currentQs = [...currentTopic.qs].sort(() => Math.random() - 0.5);
+  currentIdx = 0;
+  currentScore = 0;
+  answered = false;
+  document.getElementById("home-view").classList.add("hidden");
+  document.getElementById("result-view").classList.add("hidden");
+  document.getElementById("game-view").classList.remove("hidden");
+  renderQuestion();
+}
+
+function renderQuestion() {
+  const q = currentQs[currentIdx];
+  answered = false;
+  document.getElementById("q-counter").textContent = `${currentIdx + 1} / ${currentQs.length}`;
+  const pct = (currentIdx / currentQs.length) * 100;
+  document.getElementById("progress-bar").style.width = pct + "%";
+
+  // Render question body
+  const card = document.getElementById("q-card");
+  let html = `<div class="qtype-tag">${currentTopic.icon} ${currentTopic.name}</div>`;
+  html += `<div class="q-prompt">${q.prompt}</div>`;
+  if (q.display) {
+    html += `<div class="q-char-lg">${q.display}</div>`;
+  }
+  if (q.sub) {
+    html += `<div class="q-jyut">${q.sub}</div>`;
+  }
+  if (q.sentence) {
+    html += `<div class="q-sentence">${q.sentence}</div>`;
+  }
+  if (q.chars) {
+    html += `<div class="q-chars-row">` + q.chars.map(c =>
+      `<div class="q-char-card" data-char="${c}">${c}</div>`
+    ).join("") + `</div>`;
+  }
+  card.innerHTML = html;
+  card.style.borderTop = `4px solid ${currentTopic.color}`;
+
+  // Render options
+  const opts = document.getElementById("options");
+  opts.innerHTML = "";
+  q.opts.forEach((label, i) => {
+    const btn = document.createElement("button");
+    btn.className = "option";
+    btn.textContent = label;
+    btn.onclick = () => answer(i, btn);
+    opts.appendChild(btn);
+  });
+
+  document.getElementById("feedback").classList.add("hidden");
+  document.getElementById("next-btn").classList.add("hidden");
+}
+
+function answer(i, btn) {
+  if (answered) return;
+  answered = true;
+  const q = currentQs[currentIdx];
+  const correct = i === q.a;
+  if (correct) {
+    currentScore++;
+    btn.classList.add("right");
+    showFeedback(true, q.opts[q.a]);
+    burstConfetti(btn);
+  } else {
+    btn.classList.add("wrong");
+    btn.classList.add("shake");
+    // also highlight correct one
+    const opts = document.querySelectorAll("#options .option");
+    opts[q.a].classList.add("right");
+    opts.forEach((o, idx) => { if (idx !== i && idx !== q.a) o.classList.add("dim"); });
+    showFeedback(false, q.opts[q.a]);
+  }
+  document.getElementById("next-btn").classList.remove("hidden");
+}
+
+function showFeedback(good, ans) {
+  const fb = document.getElementById("feedback");
+  fb.className = `feedback ${good ? "good" : "bad"}`;
+  fb.innerHTML = good
+    ? `✅ 答啱晒！<span class="ans">${ans}</span>`
+    : `❌ 答錯喇，正確係：<span class="ans">${ans}</span>`;
+  fb.classList.remove("hidden");
+}
+
+document.getElementById("next-btn").onclick = () => {
+  currentIdx++;
+  if (currentIdx >= currentQs.length) {
+    finishTopic();
+  } else {
+    renderQuestion();
+  }
+};
+
+function finishTopic() {
+  setBest(currentTopic.id, currentScore);
+  const total = currentQs.length;
+  const stars = computeStars(currentScore, total);
+
+  document.getElementById("game-view").classList.add("hidden");
+  document.getElementById("result-view").classList.remove("hidden");
+
+  document.getElementById("r-score").textContent = currentScore;
+  const titleEl = document.getElementById("r-title");
+  const subEl = document.getElementById("r-sub");
+  const emojiEl = document.getElementById("r-emoji");
+
+  if (stars === 3) {
+    emojiEl.textContent = "🏆";
+    titleEl.textContent = "完美晒！";
+    subEl.textContent = "全部都答啱，太犀利啦！";
+    burstConfettiBig();
+  } else if (stars === 2) {
+    emojiEl.textContent = "🎉";
+    titleEl.textContent = "做得好好！";
+    subEl.textContent = "差少少就滿分啦，加油！";
+  } else if (stars === 1) {
+    emojiEl.textContent = "💪";
+    titleEl.textContent = "完成挑戰";
+    subEl.textContent = "繼續練習會更加熟練！";
+  } else {
+    emojiEl.textContent = "📖";
+    titleEl.textContent = "加油呀";
+    subEl.textContent = "溫多次就會進步！";
+  }
+
+  const starsEl = document.getElementById("r-stars");
+  starsEl.innerHTML = "";
+  for (let i = 0; i < 3; i++) {
+    const s = document.createElement("div");
+    s.className = "star" + (i < stars ? " earned" : "");
+    s.textContent = i < stars ? "⭐" : "☆";
+    starsEl.appendChild(s);
+  }
+}
+
+// ============================================================
+// CONFETTI — 簡單版
+// ============================================================
+
+function burstConfetti(el) {
+  const r = el.getBoundingClientRect();
+  const cx = r.left + r.width / 2;
+  const cy = r.top + r.height / 2;
+  const colors = ["#5f9e63","#e08a4e","#f2c14e","#6a9bcc","#d9663f","#8a76c4","#4ecdc4"];
+  for (let i = 0; i < 12; i++) {
+    const p = document.createElement("div");
+    p.className = "confetti-piece";
+    p.style.left = cx + "px";
+    p.style.top = cy + "px";
+    p.style.background = colors[Math.floor(Math.random() * colors.length)];
+    p.style.borderRadius = Math.random() > 0.5 ? "50%" : "2px";
+    document.body.appendChild(p);
+    const angle = (Math.PI * 2 * i) / 12;
+    const dist = 60 + Math.random() * 50;
+    const dx = Math.cos(angle) * dist;
+    const dy = Math.sin(angle) * dist;
+    p.animate([
+      { transform: "translate(-50%,-50%) rotate(0)", opacity: 1 },
+      { transform: `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px)) rotate(${360 + Math.random() * 360}deg)`, opacity: 0 }
+    ], { duration: 700, easing: "cubic-bezier(0.16,1,0.3,1)" });
+    setTimeout(() => p.remove(), 720);
+  }
+}
+
+function burstConfettiBig() {
+  const colors = ["#5f9e63","#e08a4e","#f2c14e","#6a9bcc","#d9663f","#8a76c4","#4ecdc4"];
+  for (let i = 0; i < 60; i++) {
+    const p = document.createElement("div");
+    p.className = "confetti-piece";
+    p.style.left = (Math.random() * 100) + "vw";
+    p.style.top = "-20px";
+    p.style.background = colors[Math.floor(Math.random() * colors.length)];
+    p.style.borderRadius = Math.random() > 0.5 ? "50%" : "2px";
+    p.style.width = (6 + Math.random() * 6) + "px";
+    p.style.height = (8 + Math.random() * 10) + "px";
+    document.body.appendChild(p);
+    const dx = (Math.random() - 0.5) * 200;
+    const dur = 1200 + Math.random() * 800;
+    p.animate([
+      { transform: `translate(0,0) rotate(0)`, opacity: 1 },
+      { transform: `translate(${dx}px, ${window.innerHeight + 50}px) rotate(${360 * 3}deg)`, opacity: 0.6 }
+    ], { duration: dur, easing: "cubic-bezier(0.16,1,0.3,1)" });
+    setTimeout(() => p.remove(), dur + 100);
+  }
+}
+
+// ============================================================
+// NAV
+// ============================================================
+
+document.getElementById("back-btn").onclick = () => {
+  if (confirm("要離開呢個課題嗎？")) {
+    goHome();
+  }
+};
+document.getElementById("back-home").onclick = goHome;
+document.getElementById("back-home-2").onclick = goHome;
+document.getElementById("retry-btn").onclick = () => startTopic(currentTopic.id);
+document.getElementById("reset-btn").onclick = () => {
+  if (confirm("確定要重設所有星星嗎？")) {
+    localStorage.removeItem(STORE_KEY);
+    renderHome();
+  }
+};
+
+function goHome() {
+  document.getElementById("game-view").classList.add("hidden");
+  document.getElementById("result-view").classList.add("hidden");
+  document.getElementById("home-view").classList.remove("hidden");
+  renderHome();
+}
+
+// ============================================================
+// BOOT
+// ============================================================
+
+renderHome();
+</script>
+</body>
+</html>
