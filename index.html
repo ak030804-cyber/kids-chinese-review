@@ -668,15 +668,15 @@ const STORE_KEY = "kcr_state_v1";
 function loadState() {
   try {
     const s = JSON.parse(localStorage.getItem(STORE_KEY) || "{}");
-    return s.best || {};
-  } catch { return {}; }
+    return { best: s.best || {}, events: s.events || [] };
+  } catch { return { best: {}, events: [] }; }
 }
 function saveState(state) {
-  localStorage.setItem(STORE_KEY, JSON.stringify({ best: state.best }));
+  localStorage.setItem(STORE_KEY, JSON.stringify({ best: state.best, events: state.events || [] }));
 }
 function getBest(topicId) {
   const s = loadState();
-  return s.best[topicId] || 0;
+  return (s.best && s.best[topicId]) || 0;
 }
 function setBest(topicId, score) {
   const s = loadState();
