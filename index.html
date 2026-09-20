@@ -207,8 +207,10 @@ body {
 }
 .study-card.revealed .study-char { font-size: 76px; }
 .study-reveal { margin-top: 12px; animation: pop 0.3s cubic-bezier(0.34,1.56,0.64,1); }
-.study-jyut { font-size: 22px; color: var(--green-deep); font-weight: 800; letter-spacing: 0.02em; }
-.study-ex { font-size: 15px; color: var(--muted); margin-top: 6px; font-weight: 700; }
+.study-line { display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 7px; }
+.study-lbl { font-size: 11.5px; font-weight: 800; color: #fff; background: var(--green); border-radius: 999px; padding: 2px 9px; letter-spacing: 0.04em; }
+.study-val { font-size: 20px; font-weight: 800; color: var(--green-deep); letter-spacing: 0.02em; }
+.study-val2 { font-size: 15px; font-weight: 700; color: var(--muted); }
 .study-hint { color: var(--muted); font-size: 13px; margin-top: 12px; min-height: 18px; font-weight: 700; }
 .speaker {
   width: 78px; height: 78px; border-radius: 50%; border: none;
@@ -401,8 +403,8 @@ body {
       <div class="study-card" id="study-card">
         <div class="study-char" id="study-char"></div>
         <div class="study-reveal hidden" id="study-reveal">
-          <div class="study-jyut" id="study-jyut"></div>
-          <div class="study-ex" id="study-ex"></div>
+          <div class="study-line"><span class="study-lbl" id="study-lbl1">讀音</span><span class="study-val" id="study-jyut"></span></div>
+          <div class="study-line"><span class="study-lbl" id="study-lbl2">例詞</span><span class="study-val2" id="study-ex"></span></div>
         </div>
       </div>
       <div class="study-hint" id="study-hint">撳吓個字睇讀音</div>
@@ -461,6 +463,8 @@ const TOPICS = [
     icon: "🎵",
     color: "#6a9bcc",
     vocabLabel: "四聲例字",
+    subLabel: "讀音",
+    exLabel: "聲調",
     vocab: [
       { c: "媽", sub: "maa¹", ex: "陰平聲" },
       { c: "花", sub: "faa¹", ex: "陰平聲" },
@@ -489,6 +493,8 @@ const TOPICS = [
     icon: "🔤",
     color: "#e08a4e",
     vocabLabel: "同音字",
+    subLabel: "讀音",
+    exLabel: "例詞",
     vocab: [
       { c: "園", sub: "jyun⁴", ex: "公園" },
       { c: "原", sub: "jyun⁴", ex: "原來" },
@@ -527,6 +533,8 @@ const TOPICS = [
     icon: "✏️",
     color: "#d9663f",
     vocabLabel: "相似部件",
+    subLabel: "名稱",
+    exLabel: "例子",
     vocab: [
       { c: "灬", sub: "火字底", say: "火字底", ex: "燈·熱·燒" },
       { c: "犬", sub: "反犬旁", say: "反犬旁", ex: "狗·貓·狼" },
@@ -554,6 +562,8 @@ const TOPICS = [
     icon: "📦",
     color: "#5f9e63",
     vocabLabel: "量詞",
+    subLabel: "用法",
+    exLabel: "例",
     vocab: [
       { c: "件", sub: "一件一件", ex: "衫·行李" },
       { c: "雙", sub: "一雙一雙", ex: "鞋·襪" },
@@ -581,6 +591,8 @@ const TOPICS = [
     icon: "🏃",
     color: "#4ecdc4",
     vocabLabel: "動詞",
+    subLabel: "疊字",
+    exLabel: "例",
     vocab: [
       { c: "看", sub: "看看", ex: "看看書" },
       { c: "聽", sub: "聽聽", ex: "聽聽歌" },
@@ -610,6 +622,8 @@ const TOPICS = [
     icon: "🧩",
     color: "#8a76c4",
     vocabLabel: "部首",
+    subLabel: "名稱",
+    exLabel: "例字",
     vocab: [
       { c: "心", sub: "心字底", say: "心字底", ex: "思·想·念" },
       { c: "宀", sub: "寶蓋頭", say: "寶蓋頭", ex: "字·安·家" },
@@ -637,6 +651,8 @@ const TOPICS = [
     icon: "📝",
     color: "#f2c14e",
     vocabLabel: "句式",
+    subLabel: "句式",
+    exLabel: "例句",
     vocab: [
       { c: "比", sub: "比句式", ex: "我比佢更高" },
       { c: "一邊", sub: "一邊…一邊", ex: "一邊食一邊睇" },
@@ -807,6 +823,11 @@ function renderStudyCard() {
   document.getElementById("study-char").textContent = v.c;
   document.getElementById("study-jyut").textContent = v.sub || "";
   document.getElementById("study-ex").textContent = v.ex || "";
+  const sl1 = t.subLabel, sl2 = t.exLabel;
+  document.getElementById("study-lbl1").textContent = sl1 || "";
+  document.getElementById("study-lbl1").style.display = sl1 ? "" : "none";
+  document.getElementById("study-lbl2").textContent = sl2 || "";
+  document.getElementById("study-lbl2").style.display = sl2 ? "" : "none";
   document.getElementById("study-counter").textContent = `${studyIdx + 1} / ${t.vocab.length}`;
   document.getElementById("study-reveal").classList.toggle("hidden", !studyRevealed);
   card.classList.toggle("revealed", studyRevealed);
