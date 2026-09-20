@@ -356,10 +356,10 @@ body {
     </div>
 
     <div class="card hero-card">
-      <div class="hero-greet">課題範圍</div>
-      <div class="hero-title">七個課題 · 邊玩邊學</div>
-      <div class="hero-sub">撳入課題睇生字卡，然後挑戰自己 ⭐</div>
-      <div class="ring-mini" id="total-progress">⭐ 0 / 21 粒星</div>
+      <div class="hero-greet">我的中國</div>
+      <div class="hero-title">8 個主題 · 邊玩邊學</div>
+      <div class="hero-sub">撳入主題睇生字卡，然後挑戰自己 ⭐</div>
+      <div class="ring-mini" id="total-progress">⭐ 0 / 24 粒星</div>
     </div>
 
     <div class="section-label">選擇課題</div>
@@ -657,6 +657,25 @@ const TOPICS = [
   }
 ];
 
+// ============================================================
+// 總主題：我的中國 — 集合 worksheet 全部生字
+// ============================================================
+const MYCHINA = {
+  id: "mychina",
+  name: "我的中國",
+  desc: "綜合認字 · 全部生字",
+  icon: "🏮",
+  color: "#d9663f",
+  vocabLabel: "全部生字",
+  vocab: [],
+  qs: []
+};
+TOPICS.forEach(t => {
+  MYCHINA.vocab.push(...t.vocab);
+  MYCHINA.qs.push(...t.qs);
+});
+TOPICS.unshift(MYCHINA);
+
 const STAR_THRESHOLDS = [0.95, 0.75, 0.5];
 
 // ============================================================
@@ -836,7 +855,9 @@ function speakStudy() {
 let currentQs = [], currentIdx = 0, currentScore = 0, answered = false;
 
 function startQuiz() {
-  currentQs = [...currentTopic.qs].sort(() => Math.random() - 0.5);
+  let qs = [...currentTopic.qs].sort(() => Math.random() - 0.5);
+  if (qs.length > 10) qs = qs.slice(0, 10); // 綜合課題限 10 題
+  currentQs = qs;
   currentIdx = 0; currentScore = 0; answered = false;
   showView("game-view");
   renderQuestion();
