@@ -424,7 +424,64 @@ body {
     </div>
 
     <div class="section-label">選擇課題</div>
-    <div class="topic-grid" id="topic-grid"></div>
+    <div class="topic-grid" id="topic-grid">
+      <div class="topic" data-topic="tone" style="cursor:pointer">
+        <div class="tbadge" style="background:#6a9bcc">🎵</div>
+        <div class="tinfo">
+          <div class="tname">聲調變化</div>
+          <div class="tdesc">分辨廣東話四聲</div>
+        </div>
+        <div class="tstar" data-star="tone">未挑戰</div>
+      </div>
+      <div class="topic" data-topic="homo" style="cursor:pointer">
+        <div class="tbadge" style="background:#e08a4e">🔤</div>
+        <div class="tinfo">
+          <div class="tname">同音字</div>
+          <div class="tdesc">揀啱同音異字</div>
+        </div>
+        <div class="tstar" data-star="homo">未挑戰</div>
+      </div>
+      <div class="topic" data-topic="similar" style="cursor:pointer">
+        <div class="tbadge" style="background:#d9663f">✏️</div>
+        <div class="tinfo">
+          <div class="tname">形近字</div>
+          <div class="tdesc">分辨相似部件</div>
+        </div>
+        <div class="tstar" data-star="similar">未挑戰</div>
+      </div>
+      <div class="topic" data-topic="measure" style="cursor:pointer">
+        <div class="tbadge" style="background:#5f9e63">📦</div>
+        <div class="tinfo">
+          <div class="tname">量詞疊字</div>
+          <div class="tdesc">「一X一X」嘅量詞</div>
+        </div>
+        <div class="tstar" data-star="measure">未挑戰</div>
+      </div>
+      <div class="topic" data-topic="verb" style="cursor:pointer">
+        <div class="tbadge" style="background:#4ecdc4">🏃</div>
+        <div class="tinfo">
+          <div class="tname">動詞疊字</div>
+          <div class="tdesc">動詞重疊嘅寫法</div>
+        </div>
+        <div class="tstar" data-star="verb">未挑戰</div>
+      </div>
+      <div class="topic" data-topic="radical" style="cursor:pointer">
+        <div class="tbadge" style="background:#8a76c4">🧩</div>
+        <div class="tinfo">
+          <div class="tname">部首結構</div>
+          <div class="tdesc">認吓常用部件</div>
+        </div>
+        <div class="tstar" data-star="radical">未挑戰</div>
+      </div>
+      <div class="topic" data-topic="sentence" style="cursor:pointer">
+        <div class="tbadge" style="background:#f2c14e">📝</div>
+        <div class="tinfo">
+          <div class="tname">句式練習</div>
+          <div class="tdesc">比/一邊/不但/既/愈</div>
+        </div>
+        <div class="tstar" data-star="sentence">未挑戰</div>
+      </div>
+    </div>
 
     <div style="text-align:center; margin-top: 22px; font-size: 12px; color: var(--muted);">
       一個課題完成可得 1–3 粒星 · 答得快答啱拎滿分
@@ -632,28 +689,24 @@ function setBest(topicId, score) {
 // ============================================================
 
 function renderHome() {
-  const grid = document.getElementById("topic-grid");
-  grid.innerHTML = "";
+  // Topics are pre-rendered in HTML; just refresh stars + bind clicks
   TOPICS.forEach(t => {
     const best = getBest(t.id);
     const total = t.qs.length;
-    const stars = best ? computeStars(best, total) : 0;
-    const starText = best
-      ? `⭐ ${best}/${total}`
-      : `未挑戰`;
-    const div = document.createElement("div");
-    div.className = "topic pop";
-    div.innerHTML = `
-      <div class="tbadge" style="background:${t.color}">${t.icon}</div>
-      <div class="tinfo">
-        <div class="tname">${t.name}</div>
-        <div class="tdesc">${t.desc}</div>
-      </div>
-      <div class="tstar ${best ? 'gold' : ''}">${starText}</div>
-    `;
-    div.addEventListener('click', () => startTopic(t.id), { passive: true });
-    div.addEventListener('touchend', e => { e.preventDefault(); startTopic(t.id); }, { passive: false });
-    grid.appendChild(div);
+    const starEl = document.querySelector(`[data-star="${t.id}"]`);
+    if (starEl) {
+      starEl.textContent = best ? `⭐ ${best}/${total}` : `未挑戰`;
+      starEl.classList.toggle('gold', !!best);
+    }
+  });
+  // bind click + touchend for each topic card (idempotent: check marker)
+  document.querySelectorAll('.topic[data-topic]').forEach(el => {
+    if (el.dataset.bound) return;
+    el.dataset.bound = '1';
+    const id = el.dataset.topic;
+    const fire = (ev) => { ev.preventDefault(); startTopic(id); };
+    el.addEventListener('click', fire, { passive: false });
+    el.addEventListener('touchend', fire, { passive: false });
   });
   updateTotalProgress();
 }
