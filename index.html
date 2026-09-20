@@ -675,24 +675,20 @@ const TOPICS = [
 ];
 
 // ============================================================
-// 總主題：我愛中國 — worksheet 生字 + 認讀詞語（組字）
+// 總主題：我愛中國 — 只保留 worksheet 認讀詞語（組字）
 // ============================================================
 const MYCHINA = {
   id: "mychina",
   name: "我愛中國",
-  desc: "認讀詞語 · 綜合認字",
+  desc: "認讀詞語 · 認字卡 + 聽音認字",
   icon: "🏮",
   color: "#d9663f",
   vocabLabel: "生字詞語",
   subLabel: "讀音",
-  exLabel: "例詞",
+  exLabel: "",
   vocab: [],
   qs: []
 };
-TOPICS.forEach(t => {
-  MYCHINA.vocab.push(...t.vocab);
-  MYCHINA.qs.push(...t.qs);
-});
 
 // 我愛中國 認讀詞語（來自 worksheet）
 const CHINA_WORDS = [
