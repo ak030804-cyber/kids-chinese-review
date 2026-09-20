@@ -183,6 +183,49 @@ body {
 .vcard.tone-4 { border-color: #f5d3c8; }
 
 .vocab-actions { margin-top: 22px; display: grid; gap: 10px; }
+
+/* ---------- Study (認字卡) ---------- */
+.study-stage { text-align: center; padding: 6px 0 0; }
+.study-card {
+  width: 230px; height: 270px; margin: 10px auto 6px;
+  background: var(--surface);
+  border: 3px solid var(--line);
+  border-radius: 30px;
+  box-shadow: var(--shadow);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  cursor: pointer; position: relative;
+  transition: transform 0.18s cubic-bezier(0.16,1,0.3,1), border-color 0.3s;
+  user-select: none;
+}
+.study-card:active { transform: scale(0.97); }
+.study-card.revealed { border-color: var(--green); }
+.study-char {
+  font-size: 118px; font-weight: 800; line-height: 1;
+  letter-spacing: 0.02em;
+  transition: font-size 0.25s cubic-bezier(0.16,1,0.3,1);
+}
+.study-card.revealed .study-char { font-size: 76px; }
+.study-reveal { margin-top: 12px; animation: pop 0.3s cubic-bezier(0.34,1.56,0.64,1); }
+.study-jyut { font-size: 22px; color: var(--green-deep); font-weight: 800; letter-spacing: 0.02em; }
+.study-ex { font-size: 15px; color: var(--muted); margin-top: 6px; font-weight: 700; }
+.study-hint { color: var(--muted); font-size: 13px; margin-top: 12px; min-height: 18px; font-weight: 700; }
+.speaker {
+  width: 78px; height: 78px; border-radius: 50%; border: none;
+  margin: 16px auto 4px; display: grid; place-items: center;
+  background: linear-gradient(180deg, #eef7ee, #dcefdc);
+  color: var(--green-deep); cursor: pointer;
+  box-shadow: var(--shadow); font-size: 32px;
+  transition: transform 0.15s cubic-bezier(0.16,1,0.3,1);
+}
+.speaker:active { transform: scale(0.92); }
+.speaker.playing { animation: pulse 1s ease-in-out infinite; }
+@keyframes pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(95,158,99,0.35), var(--shadow); }
+  50% { box-shadow: 0 0 0 16px rgba(95,158,99,0), var(--shadow); }
+}
+.study-nav { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 18px; }
+.study-nav .btn { border-radius: 16px; padding: 14px 12px; font-size: 15px; }
 .btn {
   border: none; border-radius: 18px; padding: 16px 20px;
   font-family: inherit; font-size: 17px; font-weight: 800;
@@ -342,7 +385,32 @@ body {
     <div class="section-label">本課生字 · 撳吓每個字</div>
     <div class="vocab-grid" id="vocab-grid"></div>
     <div class="vocab-actions">
-      <button class="btn" id="start-quiz-btn">開始挑戰 →</button>
+      <button class="btn" id="start-study-btn">🃏 開始認字</button>
+      <button class="btn ghost" id="start-quiz-btn">✏️ 開始挑戰</button>
+    </div>
+  </div>
+
+  <!-- ============ STUDY (認字卡) ============ -->
+  <div id="study-view" class="hidden">
+    <div class="topbar">
+      <button class="backbtn" id="study-back">←</button>
+      <div style="flex:1"></div>
+      <div class="count" id="study-counter"></div>
+    </div>
+    <div class="study-stage">
+      <div class="study-card" id="study-card">
+        <div class="study-char" id="study-char"></div>
+        <div class="study-reveal hidden" id="study-reveal">
+          <div class="study-jyut" id="study-jyut"></div>
+          <div class="study-ex" id="study-ex"></div>
+        </div>
+      </div>
+      <div class="study-hint" id="study-hint">撳吓個字睇讀音</div>
+      <button class="speaker" id="study-speak" title="聽讀音">🔊</button>
+    </div>
+    <div class="study-nav">
+      <button class="btn ghost" id="study-prev">← 上一個</button>
+      <button class="btn" id="study-next">下一個 →</button>
     </div>
   </div>
 
@@ -672,7 +740,7 @@ function openVocab(id) {
 
   const grid = document.getElementById("vocab-grid");
   grid.innerHTML = "";
-  t.vocab.forEach(v => {
+  t.vocab.forEach((v, i) => {
     const card = document.createElement("div");
     card.className = "vcard";
     card.innerHTML = `
@@ -680,14 +748,86 @@ function openVocab(id) {
       <div class="vc-sub">${v.sub || ""}</div>
       <div class="vc-ex">${v.ex || ""}</div>
     `;
-    card.addEventListener("click", () => {
-      card.classList.add("pop");
-      setTimeout(() => card.classList.remove("pop"), 340);
-    });
+    card.addEventListener("click", () => { studyIdx = i; openStudy(); });
     grid.appendChild(card);
   });
 
   showView("vocab-view");
+}
+
+// ============================================================
+// STUDY (認字卡)
+// ============================================================
+let studyIdx = 0;
+let studyRevealed = false;
+let ttsVoice = null;
+
+function pickVoice() {
+  if (!window.speechSynthesis) return null;
+  const vs = speechSynthesis.getVoices();
+  return vs.find(v => /zh[-_]HK|yue|粵|cantonese/i.test(v.lang + v.name))
+      || vs.find(v => /zh[-_]TW|zh[-_]CN|cmn/i.test(v.lang))
+      || vs.find(v => /zh/i.test(v.lang))
+      || null;
+}
+if (window.speechSynthesis) {
+  pickVoice() && (ttsVoice = pickVoice());
+  speechSynthesis.onvoiceschanged = () => { ttsVoice = pickVoice(); };
+}
+
+function openStudy() {
+  studyRevealed = false;
+  showView("study-view");
+  renderStudyCard();
+}
+
+function renderStudyCard() {
+  const t = currentTopic;
+  const v = t.vocab[studyIdx];
+  const card = document.getElementById("study-card");
+  document.getElementById("study-char").textContent = v.c;
+  document.getElementById("study-jyut").textContent = v.sub || "";
+  document.getElementById("study-ex").textContent = v.ex || "";
+  document.getElementById("study-counter").textContent = `${studyIdx + 1} / ${t.vocab.length}`;
+  document.getElementById("study-reveal").classList.toggle("hidden", !studyRevealed);
+  card.classList.toggle("revealed", studyRevealed);
+  document.getElementById("study-hint").textContent = studyRevealed ? "" : "撳吓個字睇讀音";
+}
+
+function revealStudy() {
+  studyRevealed = !studyRevealed;
+  renderStudyCard();
+}
+function nextStudy() {
+  studyIdx = (studyIdx + 1) % currentTopic.vocab.length;
+  studyRevealed = false;
+  renderStudyCard();
+}
+function prevStudy() {
+  studyIdx = (studyIdx - 1 + currentTopic.vocab.length) % currentTopic.vocab.length;
+  studyRevealed = false;
+  renderStudyCard();
+}
+function speakStudy() {
+  const v = currentTopic.vocab[studyIdx];
+  const text = v.ex || v.c;
+  if (!window.speechSynthesis) {
+    // graceful fallback: just reveal
+    if (!studyRevealed) { studyRevealed = true; renderStudyCard(); }
+    return;
+  }
+  try {
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = "zh-HK";
+    u.rate = 0.85;
+    if (ttsVoice) u.voice = ttsVoice;
+    const sp = document.getElementById("study-speak");
+    sp.classList.add("playing");
+    u.onend = () => sp.classList.remove("playing");
+    u.onerror = () => sp.classList.remove("playing");
+    speechSynthesis.speak(u);
+  } catch (e) { /* ignore */ }
 }
 
 // ============================================================
@@ -798,7 +938,7 @@ function finishQuiz() {
 // VIEW SWITCH
 // ============================================================
 function showView(id) {
-  ["home-view", "vocab-view", "game-view", "result-view"].forEach(v => {
+  ["home-view", "vocab-view", "study-view", "game-view", "result-view"].forEach(v => {
     document.getElementById(v).classList.toggle("hidden", v !== id);
   });
   window.scrollTo(0, 0);
@@ -851,6 +991,12 @@ function burstConfettiBig() {
 // ============================================================
 document.getElementById("vocab-back").addEventListener("click", goHome);
 document.getElementById("start-quiz-btn").addEventListener("click", startQuiz);
+document.getElementById("start-study-btn").addEventListener("click", () => { studyIdx = 0; openStudy(); });
+document.getElementById("study-back").addEventListener("click", () => showView("vocab-view"));
+document.getElementById("study-card").addEventListener("click", revealStudy);
+document.getElementById("study-next").addEventListener("click", nextStudy);
+document.getElementById("study-prev").addEventListener("click", prevStudy);
+document.getElementById("study-speak").addEventListener("click", (e) => { e.stopPropagation(); speakStudy(); });
 document.getElementById("next-btn").addEventListener("click", nextQuestion);
 document.getElementById("back-btn").addEventListener("click", () => {
   if (confirm("要離開呢個挑戰嗎？")) showView("vocab-view");
