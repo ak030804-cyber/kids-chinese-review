@@ -12,7 +12,6 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Nunito:wght@400;600;700;800&family=Noto+Sans+TC:wght@500;700;800&display=swap">
 <style>
-
 :root {
   --bg: #fbf7ef;
   --bg-2: #f3ecdf;
@@ -35,8 +34,8 @@
   --shadow-sm: 0 6px 16px -10px rgba(70, 58, 34, 0.4);
   --font: "Outfit", ui-rounded, "Nunito", "Noto Sans TC", system-ui, -apple-system, "PingFang TC", "Microsoft JhengHei", sans-serif;
 }
-
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+button, .topic, .option, .backbtn, .next-btn, .iconbtn, .vcard { touch-action: manipulation; }
 html, body { margin: 0; padding: 0; }
 body {
   font-family: var(--font);
@@ -47,55 +46,48 @@ body {
   min-height: 100dvh;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
-  font-feature-settings: "palt";
   overflow-x: hidden;
 }
-
 .app {
   width: 100%;
   max-width: 480px;
   margin: 0 auto;
   min-height: 100dvh;
-  padding: 18px 18px 24px;
+  padding: 18px 18px 30px;
   position: relative;
 }
-
 .hidden { display: none !important; }
 
 /* ---------- Header ---------- */
-.topbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 16px;
-}
+.topbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
 .topbar .who { display: flex; align-items: center; gap: 12px; }
 .avatar {
   width: 46px; height: 46px; border-radius: 50%;
   display: grid; place-items: center;
   color: #fff; font-weight: 800; font-size: 20px;
-  box-shadow: var(--shadow-sm);
-  background: var(--orange);
+  box-shadow: var(--shadow-sm); background: var(--orange);
 }
 .greet { font-size: 13px; color: var(--muted); }
 .name { font-size: 19px; font-weight: 700; letter-spacing: -0.01em; }
-
 .iconbtn {
-  border: 1px solid var(--line);
-  background: var(--surface);
-  border-radius: 14px;
-  width: 44px; height: 44px;
-  display: grid; place-items: center;
-  color: var(--ink);
-  cursor: pointer;
-  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--line); background: var(--surface);
+  border-radius: 14px; width: 44px; height: 44px;
+  display: grid; place-items: center; color: var(--ink);
+  cursor: pointer; box-shadow: var(--shadow-sm);
   transition: transform 0.15s cubic-bezier(0.16, 1, 0.3, 1);
-  font-family: inherit;
+  font-family: inherit; font-size: 18px;
 }
 .iconbtn:active { transform: scale(0.94); }
+.backbtn {
+  border: 1px solid var(--line); background: var(--surface);
+  border-radius: 14px; width: 44px; height: 44px;
+  display: grid; place-items: center;
+  cursor: pointer; box-shadow: var(--shadow-sm);
+  font-family: inherit; font-size: 18px; color: var(--ink);
+  flex: none;
+}
 
-/* ---------- Today card ---------- */
+/* ---------- Cards ---------- */
 .card {
   background: var(--surface);
   border: 1px solid var(--line);
@@ -103,56 +95,38 @@ body {
   box-shadow: var(--shadow);
   padding: 18px 18px 20px;
 }
-
 .hero-card {
   background: linear-gradient(135deg, #5f9e63 0%, #3f7a49 100%);
-  color: #fff;
-  border: none;
-  position: relative;
-  overflow: hidden;
+  color: #fff; border: none; position: relative; overflow: hidden;
 }
 .hero-card::before {
-  content: "📖";
-  position: absolute;
-  right: -12px; bottom: -22px;
-  font-size: 130px;
-  opacity: 0.18;
-  transform: rotate(-12deg);
+  content: "📖"; position: absolute; right: -12px; bottom: -22px;
+  font-size: 130px; opacity: 0.18; transform: rotate(-12deg);
+  pointer-events: none; z-index: 0;
 }
+.hero-card > * { position: relative; z-index: 1; }
 .hero-card .hero-greet { font-size: 14px; opacity: 0.85; }
 .hero-card .hero-title { font-size: 22px; font-weight: 800; margin-top: 4px; letter-spacing: -0.01em; }
 .hero-card .hero-sub { font-size: 13px; opacity: 0.85; margin-top: 6px; }
 .hero-card .ring-mini {
-  margin-top: 14px;
-  display: flex; align-items: center; gap: 10px;
-  background: rgba(255, 255, 255, 0.18);
-  border-radius: 999px;
-  padding: 8px 14px;
-  font-size: 13px; font-weight: 700;
-  width: fit-content;
+  margin-top: 14px; display: flex; align-items: center; gap: 10px;
+  background: rgba(255, 255, 255, 0.18); border-radius: 999px;
+  padding: 8px 14px; font-size: 13px; font-weight: 700; width: fit-content;
 }
-
 .section-label {
-  font-size: 13px;
-  font-weight: 800;
-  color: var(--muted);
-  letter-spacing: 0.06em;
-  margin: 22px 4px 10px;
+  font-size: 13px; font-weight: 800; color: var(--muted);
+  letter-spacing: 0.06em; margin: 22px 4px 10px;
 }
 
 /* ---------- Topic list ---------- */
 .topic-grid { display: grid; gap: 12px; }
 .topic {
   display: flex; align-items: center; gap: 14px;
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  padding: 16px 16px;
-  box-shadow: var(--shadow-sm);
-  cursor: pointer;
+  background: var(--surface); border: 1px solid var(--line);
+  border-radius: var(--radius); padding: 16px;
+  box-shadow: var(--shadow-sm); cursor: pointer;
   transition: transform 0.15s cubic-bezier(0.16, 1, 0.3, 1);
-  position: relative;
-  overflow: hidden;
+  position: relative; overflow: hidden;
 }
 .topic:active { transform: scale(0.98); }
 .topic .tbadge {
@@ -164,16 +138,64 @@ body {
 .topic .tinfo { flex: 1; min-width: 0; }
 .topic .tname { font-weight: 800; font-size: 16px; letter-spacing: -0.01em; }
 .topic .tdesc { font-size: 12.5px; color: var(--muted); margin-top: 2px; }
-.topic .tstar {
-  font-size: 13px; font-weight: 700; color: var(--muted);
-  display: flex; align-items: center; gap: 4px;
-}
+.topic .tstar { font-size: 13px; font-weight: 700; color: var(--muted); display: flex; align-items: center; gap: 4px; }
 .topic .tstar.gold { color: #b8852c; }
 
-/* ---------- Game ---------- */
-.learn-top {
-  display: flex; align-items: center; gap: 14px; margin-bottom: 14px;
+/* ---------- Vocab (生字) view ---------- */
+.vocab-head { text-align: center; padding: 6px 0 2px; }
+.vocab-head .vicon {
+  width: 64px; height: 64px; margin: 0 auto 10px;
+  border-radius: 20px; display: grid; place-items: center;
+  font-size: 32px; color: #fff;
+  box-shadow: 0 10px 22px -12px rgba(0,0,0,0.5);
 }
+.vocab-head .vname { font-size: 24px; font-weight: 800; letter-spacing: -0.02em; }
+.vocab-head .vdesc { color: var(--muted); font-size: 13px; margin-top: 4px; }
+
+.vocab-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(88px, 1fr));
+  gap: 10px;
+  margin-top: 12px;
+}
+.vcard {
+  background: var(--surface);
+  border: 1.5px solid var(--line);
+  border-radius: 16px;
+  padding: 12px 6px 10px;
+  text-align: center;
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+  transition: transform 0.15s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s;
+  position: relative;
+  overflow: hidden;
+}
+.vcard:active { transform: scale(0.95); }
+.vcard .vc-char {
+  font-size: 36px; font-weight: 800; line-height: 1.1;
+  letter-spacing: 0.02em;
+}
+.vcard .vc-sub { font-size: 11.5px; color: var(--muted); margin-top: 4px; font-weight: 700; }
+.vcard .vc-ex { font-size: 11px; color: var(--green-deep); margin-top: 2px; }
+.vcard.tone-1 { border-color: #cfe0f2; }
+.vcard.tone-2 { border-color: #d8efe2; }
+.vcard.tone-3 { border-color: #fbe7c6; }
+.vcard.tone-4 { border-color: #f5d3c8; }
+
+.vocab-actions { margin-top: 22px; display: grid; gap: 10px; }
+.btn {
+  border: none; border-radius: 18px; padding: 16px 20px;
+  font-family: inherit; font-size: 17px; font-weight: 800;
+  color: #fff; background: var(--green); cursor: pointer; width: 100%;
+  box-shadow: 0 12px 24px -14px rgba(63, 122, 73, 0.9);
+  transition: transform 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+  display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+}
+.btn:active { transform: scale(0.97); }
+.btn.ghost { background: var(--surface); color: var(--ink); border: 1px solid var(--line); box-shadow: var(--shadow-sm); }
+
+/* ---------- Game ---------- */
+.learn-top { display: flex; align-items: center; gap: 14px; margin-bottom: 14px; }
 .progress-lane {
   flex: 1; height: 12px; border-radius: 999px;
   background: var(--surface-2); border: 1px solid var(--line); overflow: hidden;
@@ -183,173 +205,75 @@ body {
   background: linear-gradient(90deg, var(--green), #7cc07f);
   transition: width 0.35s cubic-bezier(0.16, 1, 0.3, 1);
 }
-.count {
-  font-weight: 800; color: var(--muted);
-  font-variant-numeric: tabular-nums;
-  font-size: 14px;
-}
-.backbtn {
-  border: 1px solid var(--line);
-  background: var(--surface);
-  border-radius: 14px;
-  width: 40px; height: 40px;
-  display: grid; place-items: center;
-  cursor: pointer; box-shadow: var(--shadow-sm);
-  font-family: inherit; font-size: 18px;
-  color: var(--ink);
-}
-
+.count { font-weight: 800; color: var(--muted); font-variant-numeric: tabular-nums; font-size: 14px; }
 .qtype-tag {
   display: inline-flex; align-items: center; gap: 6px;
   background: var(--surface-2); border: 1px solid var(--line);
   border-radius: 999px; padding: 6px 12px;
   font-size: 12.5px; font-weight: 700; color: var(--muted);
 }
-
 .q-card {
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow);
-  padding: 26px 22px;
-  margin-top: 12px;
-  text-align: center;
-  position: relative;
-  overflow: hidden;
+  background: var(--surface); border: 1px solid var(--line);
+  border-radius: var(--radius-lg); box-shadow: var(--shadow);
+  padding: 24px 20px; margin-top: 12px; text-align: center;
+  position: relative; overflow: hidden;
 }
-
-.q-prompt { font-size: 14px; color: var(--muted); margin-bottom: 14px; font-weight: 700; }
-.q-char-lg {
-  font-size: 80px; font-weight: 800; letter-spacing: -0.02em;
-  line-height: 1.1; margin: 6px 0;
-}
-.q-jyut {
-  color: var(--muted); font-size: 16px; margin-top: 4px;
-  font-weight: 700; letter-spacing: 0.02em;
-}
-.q-sentence {
-  font-size: 24px; font-weight: 700; letter-spacing: -0.01em;
-  line-height: 1.5; margin: 14px 0;
-}
+.q-prompt { font-size: 14px; color: var(--muted); margin-bottom: 12px; font-weight: 700; }
+.q-char-lg { font-size: 76px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.1; margin: 6px 0; }
+.q-jyut { color: var(--muted); font-size: 16px; margin-top: 4px; font-weight: 700; }
+.q-sentence { font-size: 23px; font-weight: 700; letter-spacing: -0.01em; line-height: 1.6; margin: 12px 0; }
 .q-sentence .blank {
-  display: inline-block; min-width: 50px; padding: 0 8px;
-  border-bottom: 3px solid var(--orange);
-  margin: 0 2px;
+  display: inline-block; min-width: 48px; padding: 0 6px;
+  border-bottom: 3px solid var(--orange); margin: 0 2px;
 }
-.q-chars-row {
-  display: flex; flex-wrap: wrap; gap: 10px;
-  justify-content: center; margin-top: 14px;
-}
+.q-chars-row { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-top: 14px; }
 .q-char-card {
-  width: 80px; height: 90px;
-  border: 2px solid var(--line);
-  border-radius: 16px;
-  display: grid; place-items: center;
-  font-size: 44px; font-weight: 800;
-  background: var(--surface-2);
-  transition: transform 0.15s;
+  width: 72px; height: 84px; border: 2px solid var(--line);
+  border-radius: 16px; display: grid; place-items: center;
+  font-size: 40px; font-weight: 800; background: var(--surface-2);
 }
-.q-pic {
-  width: 100px; height: 100px; margin: 4px auto 8px;
-  display: grid; place-items: center;
-  font-size: 64px; line-height: 1;
-  background: radial-gradient(120% 120% at 50% 20%, #fffdf6, #f0ead9);
-  border: 1px solid var(--line); border-radius: 24px;
-  box-shadow: var(--shadow-sm);
-}
-
-.options {
-  display: grid; gap: 10px; margin-top: 16px;
-}
+.options { display: grid; gap: 10px; margin-top: 16px; }
 .option {
-  border: 1.5px solid var(--line);
-  background: var(--surface);
-  border-radius: 18px;
-  padding: 16px 16px;
-  font-size: 19px; font-weight: 700;
-  cursor: pointer;
-  box-shadow: var(--shadow-sm);
-  font-family: inherit;
-  color: var(--ink);
-  text-align: center;
+  border: 1.5px solid var(--line); background: var(--surface);
+  border-radius: 18px; padding: 16px; font-size: 19px; font-weight: 700;
+  cursor: pointer; box-shadow: var(--shadow-sm);
+  font-family: inherit; color: var(--ink); text-align: center;
   transition: transform 0.15s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s, background 0.2s;
-  letter-spacing: 0.02em;
 }
 .option:active { transform: scale(0.98); }
-.option.right {
-  border-color: var(--green);
-  background: #eef8ee;
-  color: var(--green-deep);
-}
-.option.wrong {
-  border-color: var(--red);
-  background: #fdeee9;
-  color: var(--red);
-}
+.option.right { border-color: var(--green); background: #eef8ee; color: var(--green-deep); }
+.option.wrong { border-color: var(--red); background: #fdeee9; color: var(--red); }
 .option.dim { opacity: 0.45; }
-
 .feedback {
-  margin-top: 14px;
-  border-radius: 16px;
-  padding: 14px 16px;
-  font-weight: 700;
-  font-size: 14px;
-  display: flex; align-items: center; gap: 10px;
+  margin-top: 14px; border-radius: 16px; padding: 14px 16px;
+  font-weight: 700; font-size: 14px; display: flex; align-items: center; gap: 10px;
   animation: pop 0.32s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
-.feedback.good {
-  background: #eef8ee; color: var(--green-deep);
-  border: 1px solid #cfe7cf;
-}
-.feedback.bad {
-  background: #fdeee9; color: var(--red);
-  border: 1px solid #f5d3c8;
-}
+.feedback.good { background: #eef8ee; color: var(--green-deep); border: 1px solid #cfe7cf; }
+.feedback.bad { background: #fdeee9; color: var(--red); border: 1px solid #f5d3c8; }
 .feedback .ans { font-weight: 800; }
-
 .next-btn {
-  margin-top: 14px;
-  border: none;
-  border-radius: 18px;
-  padding: 16px 20px;
-  font-family: inherit;
-  font-size: 17px; font-weight: 800;
-  color: #fff;
-  background: var(--green);
-  cursor: pointer;
-  width: 100%;
+  margin-top: 14px; border: none; border-radius: 18px; padding: 16px 20px;
+  font-family: inherit; font-size: 17px; font-weight: 800; color: #fff;
+  background: var(--green); cursor: pointer; width: 100%;
   box-shadow: 0 12px 24px -14px rgba(63, 122, 73, 0.9);
-  transition: transform 0.15s cubic-bezier(0.16, 1, 0.3, 1);
-  display: flex; align-items: center; justify-content: center; gap: 8px;
+  transition: transform 0.15s; display: flex; align-items: center; justify-content: center; gap: 8px;
 }
 .next-btn:active { transform: scale(0.97); }
-.next-btn[disabled] { opacity: 0.4; cursor: default; }
 
 /* ---------- Result ---------- */
-.result-card {
-  text-align: center;
-  padding: 30px 22px;
-}
+.result-card { text-align: center; padding: 30px 22px; }
 .result-emoji { font-size: 78px; line-height: 1; }
 .result-title { font-size: 24px; font-weight: 800; margin-top: 10px; letter-spacing: -0.02em; }
 .result-sub { color: var(--muted); font-size: 14px; margin-top: 4px; }
 .result-score {
-  display: inline-flex; align-items: baseline; gap: 6px;
-  margin: 20px 0 8px;
-  background: var(--surface-2);
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  padding: 10px 22px;
-  font-variant-numeric: tabular-nums;
+  display: inline-flex; align-items: baseline; gap: 6px; margin: 20px 0 8px;
+  background: var(--surface-2); border: 1px solid var(--line);
+  border-radius: 999px; padding: 10px 22px; font-variant-numeric: tabular-nums;
 }
 .result-score .v { font-size: 30px; font-weight: 800; color: var(--green-deep); }
 .result-score .t { font-size: 16px; color: var(--muted); }
-.stars {
-  display: flex; justify-content: center; gap: 8px;
-  margin: 18px 0 10px;
-  font-size: 42px;
-}
-.stars .star { transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); }
+.stars { display: flex; justify-content: center; gap: 8px; margin: 18px 0 10px; font-size: 42px; }
 .stars .star.earned { animation: starpop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
 .stars .star.earned:nth-child(2) { animation-delay: 0.2s; }
 .stars .star.earned:nth-child(3) { animation-delay: 0.4s; }
@@ -358,52 +282,24 @@ body {
   60% { transform: scale(1.3) rotate(10deg); }
   100% { transform: scale(1) rotate(0); opacity: 1; }
 }
-
-.action-row {
-  display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
-  margin-top: 20px;
-}
-.action-row .btn {
-  border: none; border-radius: 16px;
-  padding: 14px 16px;
-  font-family: inherit; font-size: 15px; font-weight: 800;
-  cursor: pointer;
-  transition: transform 0.15s;
-}
-.action-row .btn:active { transform: scale(0.97); }
-.btn-primary { background: var(--green); color: #fff; box-shadow: 0 12px 24px -14px rgba(63, 122, 73, 0.9); }
-.btn-ghost { background: var(--surface); color: var(--ink); border: 1px solid var(--line); box-shadow: var(--shadow-sm); }
+.action-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; }
+.action-row .btn { border-radius: 16px; padding: 14px 16px; font-size: 15px; }
 
 /* ---------- Confetti ---------- */
-.confetti-piece {
-  position: fixed;
-  width: 10px; height: 14px;
-  pointer-events: none;
-  z-index: 50;
-}
+.confetti-piece { position: fixed; width: 10px; height: 14px; pointer-events: none; z-index: 50; }
 
 /* ---------- Animations ---------- */
 .pop { animation: pop 0.32s cubic-bezier(0.34, 1.56, 0.64, 1); }
-@keyframes pop {
-  0% { transform: scale(0.92); opacity: 0; }
-  100% { transform: scale(1); opacity: 1; }
-}
+@keyframes pop { 0% { transform: scale(0.92); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
 .shake { animation: shake 0.36s ease-in-out; }
-@keyframes shake {
-  0%, 100% { transform: translateX(0); }
-  25% { transform: translateX(-6px); }
-  75% { transform: translateX(6px); }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  * { animation: none !important; transition: none !important; }
-}
+@keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
+@media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
 </style>
 </head>
 <body>
 <div class="app">
 
-  <!-- ============ HOME VIEW ============ -->
+  <!-- ============ HOME ============ -->
   <div id="home-view">
     <div class="topbar">
       <div class="who">
@@ -419,95 +315,51 @@ body {
     <div class="card hero-card">
       <div class="hero-greet">課題範圍</div>
       <div class="hero-title">七個課題 · 邊玩邊學</div>
-      <div class="hero-sub">每個課題有 8 條題目，挑戰自己拎星星 ⭐</div>
+      <div class="hero-sub">撳入課題睇生字卡，然後挑戰自己 ⭐</div>
       <div class="ring-mini" id="total-progress">⭐ 0 / 21 粒星</div>
     </div>
 
     <div class="section-label">選擇課題</div>
-    <div class="topic-grid" id="topic-grid">
-      <div class="topic" data-topic="tone" style="cursor:pointer">
-        <div class="tbadge" style="background:#6a9bcc">🎵</div>
-        <div class="tinfo">
-          <div class="tname">聲調變化</div>
-          <div class="tdesc">分辨廣東話四聲</div>
-        </div>
-        <div class="tstar" data-star="tone">未挑戰</div>
-      </div>
-      <div class="topic" data-topic="homo" style="cursor:pointer">
-        <div class="tbadge" style="background:#e08a4e">🔤</div>
-        <div class="tinfo">
-          <div class="tname">同音字</div>
-          <div class="tdesc">揀啱同音異字</div>
-        </div>
-        <div class="tstar" data-star="homo">未挑戰</div>
-      </div>
-      <div class="topic" data-topic="similar" style="cursor:pointer">
-        <div class="tbadge" style="background:#d9663f">✏️</div>
-        <div class="tinfo">
-          <div class="tname">形近字</div>
-          <div class="tdesc">分辨相似部件</div>
-        </div>
-        <div class="tstar" data-star="similar">未挑戰</div>
-      </div>
-      <div class="topic" data-topic="measure" style="cursor:pointer">
-        <div class="tbadge" style="background:#5f9e63">📦</div>
-        <div class="tinfo">
-          <div class="tname">量詞疊字</div>
-          <div class="tdesc">「一X一X」嘅量詞</div>
-        </div>
-        <div class="tstar" data-star="measure">未挑戰</div>
-      </div>
-      <div class="topic" data-topic="verb" style="cursor:pointer">
-        <div class="tbadge" style="background:#4ecdc4">🏃</div>
-        <div class="tinfo">
-          <div class="tname">動詞疊字</div>
-          <div class="tdesc">動詞重疊嘅寫法</div>
-        </div>
-        <div class="tstar" data-star="verb">未挑戰</div>
-      </div>
-      <div class="topic" data-topic="radical" style="cursor:pointer">
-        <div class="tbadge" style="background:#8a76c4">🧩</div>
-        <div class="tinfo">
-          <div class="tname">部首結構</div>
-          <div class="tdesc">認吓常用部件</div>
-        </div>
-        <div class="tstar" data-star="radical">未挑戰</div>
-      </div>
-      <div class="topic" data-topic="sentence" style="cursor:pointer">
-        <div class="tbadge" style="background:#f2c14e">📝</div>
-        <div class="tinfo">
-          <div class="tname">句式練習</div>
-          <div class="tdesc">比/一邊/不但/既/愈</div>
-        </div>
-        <div class="tstar" data-star="sentence">未挑戰</div>
-      </div>
-    </div>
+    <div class="topic-grid" id="topic-grid"></div>
 
     <div style="text-align:center; margin-top: 22px; font-size: 12px; color: var(--muted);">
-      一個課題完成可得 1–3 粒星 · 答得快答啱拎滿分
+      每個課題完成可得 1–3 粒星 · 答得快答啱拎滿分
     </div>
   </div>
 
-  <!-- ============ GAME VIEW ============ -->
+  <!-- ============ VOCAB (生字卡) ============ -->
+  <div id="vocab-view" class="hidden">
+    <div class="topbar">
+      <button class="backbtn" id="vocab-back">←</button>
+      <div style="flex:1"></div>
+      <div class="count" id="vocab-count"></div>
+    </div>
+    <div class="vocab-head">
+      <div class="vicon" id="vocab-icon">📖</div>
+      <div class="vname" id="vocab-name"></div>
+      <div class="vdesc" id="vocab-desc"></div>
+    </div>
+    <div class="section-label">本課生字 · 撳吓每個字</div>
+    <div class="vocab-grid" id="vocab-grid"></div>
+    <div class="vocab-actions">
+      <button class="btn" id="start-quiz-btn">開始挑戰 →</button>
+    </div>
+  </div>
+
+  <!-- ============ GAME ============ -->
   <div id="game-view" class="hidden">
     <div class="learn-top">
       <button class="backbtn" id="back-btn">←</button>
       <div class="progress-lane"><i id="progress-bar"></i></div>
       <div class="count" id="q-counter">0 / 8</div>
     </div>
-
-    <div class="q-card" id="q-card">
-      <!-- dynamically rendered -->
-    </div>
-
+    <div class="q-card" id="q-card"></div>
     <div class="options" id="options"></div>
-
     <div id="feedback" class="feedback hidden"></div>
-
     <button class="next-btn hidden" id="next-btn">下一題 →</button>
   </div>
 
-  <!-- ============ RESULT VIEW ============ -->
+  <!-- ============ RESULT ============ -->
   <div id="result-view" class="hidden">
     <div class="topbar">
       <button class="backbtn" id="back-home">←</button>
@@ -517,13 +369,11 @@ body {
       <div class="result-emoji" id="r-emoji">🎉</div>
       <div class="result-title" id="r-title">完成晒！</div>
       <div class="result-sub" id="r-sub"></div>
-      <div class="result-score">
-        <span class="v" id="r-score">0</span><span class="t">/ 8 分</span>
-      </div>
+      <div class="result-score"><span class="v" id="r-score">0</span><span class="t" id="r-total">/ 8 分</span></div>
       <div class="stars" id="r-stars"></div>
       <div class="action-row">
-        <button class="btn-ghost" id="retry-btn">再玩一次</button>
-        <button class="btn-primary" id="back-home-2">揀其他課題</button>
+        <button class="btn ghost" id="retry-btn">再玩一次</button>
+        <button class="btn" id="back-home-2">揀其他課題</button>
       </div>
     </div>
   </div>
@@ -532,16 +382,27 @@ body {
 
 <script>
 // ============================================================
-// DATA — 7 個課題 · 全部源自溫習 worksheet
+// DATA — 7 個課題，生字全部嚟自溫習 worksheet
 // ============================================================
 
 const TOPICS = [
   {
     id: "tone",
     name: "聲調變化",
-    desc: "分辨廣東話四聲",
+    desc: "陰平 · 陽平 · 上聲 · 去聲",
     icon: "🎵",
     color: "#6a9bcc",
+    vocabLabel: "四聲例字",
+    vocab: [
+      { c: "媽", sub: "maa¹", ex: "陰平聲" },
+      { c: "花", sub: "faa¹", ex: "陰平聲" },
+      { c: "雞", sub: "gai¹", ex: "陰平聲" },
+      { c: "水", sub: "seoi²", ex: "陽平聲" },
+      { c: "火", sub: "fo²", ex: "陽平聲" },
+      { c: "兔", sub: "tou³", ex: "上聲" },
+      { c: "茶", sub: "caa⁴", ex: "去聲" },
+      { c: "魚", sub: "jyu⁴", ex: "去聲" }
+    ],
     qs: [
       { display: "媽", sub: "maa¹", prompt: "呢個字係邊個聲調？", opts: ["陰平聲","陽平聲","上聲","去聲"], a: 0 },
       { display: "茶", sub: "caa⁴", prompt: "呢個字係邊個聲調？", opts: ["陰平聲","陽平聲","上聲","去聲"], a: 3 },
@@ -556,9 +417,30 @@ const TOPICS = [
   {
     id: "homo",
     name: "同音字",
-    desc: "揀啱同音異字",
+    desc: "18 個同音異字",
     icon: "🔤",
     color: "#e08a4e",
+    vocabLabel: "同音字",
+    vocab: [
+      { c: "園", sub: "jyun⁴", ex: "公園" },
+      { c: "原", sub: "jyun⁴", ex: "原來" },
+      { c: "圓", sub: "jyun⁴", ex: "圓形" },
+      { c: "緣", sub: "jyun⁴", ex: "緣份" },
+      { c: "員", sub: "jyun⁴", ex: "員工" },
+      { c: "院", sub: "jyun²", ex: "醫院" },
+      { c: "援", sub: "wun⁴", ex: "援助" },
+      { c: "源", sub: "jyun⁴", ex: "來源" },
+      { c: "願", sub: "jyun⁶", ex: "願望" },
+      { c: "完", sub: "jyun⁴", ex: "完成" },
+      { c: "玩", sub: "waan²", ex: "玩耍" },
+      { c: "緩", sub: "wun⁶", ex: "緩慢" },
+      { c: "換", sub: "wun⁶", ex: "交換" },
+      { c: "還", sub: "waan⁴", ex: "還有" },
+      { c: "傳", sub: "cyun⁴", ex: "傳說" },
+      { c: "專", sub: "zyun¹", ex: "專家" },
+      { c: "轉", sub: "zyun²", ex: "轉動" },
+      { c: "尊", sub: "zyun¹", ex: "尊敬" }
+    ],
     qs: [
       { prompt: "揀啱字填入句中：", sentence: "我去公<span class='blank'>___</span>散步。", opts: ["園","原","圓","緣"], a: 0 },
       { prompt: "揀啱字填入句中：", sentence: "<span class='blank'>___</span>咗功課先出去玩。", opts: ["完","玩"], a: 0 },
@@ -573,15 +455,25 @@ const TOPICS = [
   {
     id: "similar",
     name: "形近字",
-    desc: "分辨相似部件",
+    desc: "7 個相似部件",
     icon: "✏️",
     color: "#d9663f",
+    vocabLabel: "相似部件",
+    vocab: [
+      { c: "灬", sub: "火字底", ex: "燈·熱·燒" },
+      { c: "犬", sub: "反犬旁", ex: "狗·貓·狼" },
+      { c: "瓜", sub: "瓜字旁", ex: "西瓜·木瓜" },
+      { c: "貝", sub: "貝字底", ex: "買·貴·資" },
+      { c: "瓦", sub: "瓦字旁", ex: "瓶·瓷" },
+      { c: "攵", sub: "反文旁", ex: "放·收·政" },
+      { c: "礻", sub: "示字旁", ex: "神·祝·福" }
+    ],
     qs: [
       { prompt: "邊個係「灬」(火字底)？", chars: ["灬","犬","瓜","貝"], a: 0 },
       { prompt: "邊個係「犬」(反犬旁)？", chars: ["灬","犬","瓜","貝"], a: 1 },
       { prompt: "邊個係「瓜」部件？", chars: ["瓜","瓞","瓣","瓢"], a: 0 },
       { prompt: "邊個係「貝」(貝字底)？", chars: ["貝","貞","頁","見"], a: 0 },
-      { prompt: "邊個係「瓦」部件？", chars: ["瓦","瓦","瓦","瓦"], a: 0 },
+      { prompt: "邊個係「瓦」部件？", chars: ["瓦","瓞","瓣","瓢"], a: 0 },
       { prompt: "邊個係「攵」(反文旁)？", chars: ["攵","攴","文","亠"], a: 0 },
       { prompt: "邊個係「礻」(示字旁)？", chars: ["礻","衤","祀","示"], a: 0 },
       { prompt: "邊個字有「灬」部件？", chars: ["熱","貓","狗","馬"], a: 0 }
@@ -590,9 +482,19 @@ const TOPICS = [
   {
     id: "measure",
     name: "量詞疊字",
-    desc: "「一X一X」嘅量詞",
+    desc: "「一X一X」7 個量詞",
     icon: "📦",
     color: "#5f9e63",
+    vocabLabel: "量詞",
+    vocab: [
+      { c: "件", sub: "一件一件", ex: "衫·行李" },
+      { c: "雙", sub: "一雙一雙", ex: "鞋·襪" },
+      { c: "條", sub: "一條一條", ex: "魚·河" },
+      { c: "張", sub: "一張一張", ex: "紙·枱" },
+      { c: "個", sub: "一個一個", ex: "波·人" },
+      { c: "棵", sub: "一棵一棵", ex: "樹" },
+      { c: "盒", sub: "一盒一盒", ex: "筆·糖" }
+    ],
     qs: [
       { prompt: "一<span class='blank'>___</span>一<span class='blank'>___</span>嘅衫", opts: ["件","雙","條","個"], a: 0 },
       { prompt: "一<span class='blank'>___</span>一<span class='blank'>___</span>嘅鞋", opts: ["件","雙","條","個"], a: 1 },
@@ -607,9 +509,21 @@ const TOPICS = [
   {
     id: "verb",
     name: "動詞疊字",
-    desc: "動詞重疊嘅寫法",
+    desc: "9 個動詞重疊",
     icon: "🏃",
     color: "#4ecdc4",
+    vocabLabel: "動詞",
+    vocab: [
+      { c: "看", sub: "看看", ex: "看看書" },
+      { c: "聽", sub: "聽聽", ex: "聽聽歌" },
+      { c: "想", sub: "想想", ex: "想想先" },
+      { c: "笑", sub: "笑笑", ex: "笑笑口" },
+      { c: "說", sub: "說說", ex: "說說話" },
+      { c: "讀", sub: "讀讀", ex: "讀讀書" },
+      { c: "寫", sub: "寫寫", ex: "寫寫字" },
+      { c: "跑", sub: "跑跑", ex: "跑跑步" },
+      { c: "跳", sub: "跳跳", ex: "跳跳舞" }
+    ],
     qs: [
       { prompt: "「看」嘅疊字寫法係？", display: "看", opts: ["看","看看","看一看","睇睇"], a: 1 },
       { prompt: "「聽」嘅疊字寫法係？", display: "聽", opts: ["聽","聽聽","聽一聽","聽咗"], a: 1 },
@@ -624,9 +538,19 @@ const TOPICS = [
   {
     id: "radical",
     name: "部首結構",
-    desc: "認吓常用部件",
+    desc: "7 個常用部首",
     icon: "🧩",
     color: "#8a76c4",
+    vocabLabel: "部首",
+    vocab: [
+      { c: "心", sub: "心字底", ex: "思·想·念" },
+      { c: "宀", sub: "寶蓋頭", ex: "字·安·家" },
+      { c: "亻", sub: "單人旁", ex: "仁·你·他" },
+      { c: "彳", sub: "雙人旁", ex: "行·很·往" },
+      { c: "扌", sub: "提手旁", ex: "提·打·抱" },
+      { c: "艹", sub: "草字頭", ex: "花·草·茶" },
+      { c: "訁", sub: "言字旁", ex: "說·請·話" }
+    ],
     qs: [
       { prompt: "「思」字嘅部首係邊個？", display: "思", opts: ["心字底","寶蓋頭","提手旁","草字頭"], a: 0 },
       { prompt: "「字」字嘅部首係邊個？", display: "字", opts: ["心字底","寶蓋頭","單人旁","草字頭"], a: 1 },
@@ -641,9 +565,17 @@ const TOPICS = [
   {
     id: "sentence",
     name: "句式練習",
-    desc: "比/一邊/不但/既/愈",
+    desc: "5 種常用句式",
     icon: "📝",
     color: "#f2c14e",
+    vocabLabel: "句式",
+    vocab: [
+      { c: "比", sub: "比句式", ex: "我比佢更高" },
+      { c: "一邊", sub: "一邊…一邊", ex: "一邊食一邊睇" },
+      { c: "不但", sub: "不但…而且", ex: "不但叻而且勤力" },
+      { c: "既", sub: "既…也", ex: "既叻也勤力" },
+      { c: "愈", sub: "愈…愈", ex: "愈練愈叻" }
+    ],
     qs: [
       { prompt: "揀啱句式填入：", sentence: "哥哥 <span class='blank'>___</span> 我 <span class='blank'>___</span> 高。", opts: ["比 / 更","仲 / 更","比 / 仲","仲 / 仲"], a: 0 },
       { prompt: "揀啱句式填入：", sentence: "媽媽 <span class='blank'>___</span> 煮飯 <span class='blank'>___</span> 聽歌。", opts: ["不但 / 而且","既 / 也","一邊 / 一邊","愈 / 愈"], a: 2 },
@@ -657,14 +589,12 @@ const TOPICS = [
   }
 ];
 
-const STAR_THRESHOLDS = [0.95, 0.75, 0.5]; // 3 / 2 / 1 star
+const STAR_THRESHOLDS = [0.95, 0.75, 0.5];
 
 // ============================================================
-// STATE — localStorage 儲存每課題最佳成績
+// STATE
 // ============================================================
-
 const STORE_KEY = "kcr_state_v1";
-
 function loadState() {
   try {
     const s = JSON.parse(localStorage.getItem(STORE_KEY) || "{}");
@@ -672,7 +602,7 @@ function loadState() {
   } catch { return { best: {}, events: [] }; }
 }
 function saveState(state) {
-  localStorage.setItem(STORE_KEY, JSON.stringify({ best: state.best, events: state.events || [] }));
+  try { localStorage.setItem(STORE_KEY, JSON.stringify({ best: state.best, events: state.events || [] })); } catch {}
 }
 function getBest(topicId) {
   const s = loadState();
@@ -683,44 +613,6 @@ function setBest(topicId, score) {
   s.best[topicId] = Math.max(s.best[topicId] || 0, score);
   saveState(s);
 }
-
-// ============================================================
-// HOME
-// ============================================================
-
-function renderHome() {
-  // Topics are pre-rendered in HTML; just refresh stars + bind clicks
-  TOPICS.forEach(t => {
-    const best = getBest(t.id);
-    const total = t.qs.length;
-    const starEl = document.querySelector(`[data-star="${t.id}"]`);
-    if (starEl) {
-      starEl.textContent = best ? `⭐ ${best}/${total}` : `未挑戰`;
-      starEl.classList.toggle('gold', !!best);
-    }
-  });
-  // bind click + touchend for each topic card (idempotent: check marker)
-  document.querySelectorAll('.topic[data-topic]').forEach(el => {
-    if (el.dataset.bound) return;
-    el.dataset.bound = '1';
-    const id = el.dataset.topic;
-    const fire = (ev) => { ev.preventDefault(); startTopic(id); };
-    el.addEventListener('click', fire, { passive: false });
-    el.addEventListener('touchend', fire, { passive: false });
-  });
-  updateTotalProgress();
-}
-
-function updateTotalProgress() {
-  const total = TOPICS.length;
-  const earned = TOPICS.reduce((sum, t) => {
-    const b = getBest(t.id);
-    return sum + (b ? computeStars(b, t.qs.length) : 0);
-  }, 0);
-  const max = total * 3;
-  document.getElementById("total-progress").textContent = `⭐ ${earned} / ${max} 粒星`;
-}
-
 function computeStars(score, total) {
   const ratio = score / total;
   if (ratio >= STAR_THRESHOLDS[0]) return 3;
@@ -730,24 +622,83 @@ function computeStars(score, total) {
 }
 
 // ============================================================
+// HOME
+// ============================================================
+function renderHome() {
+  const grid = document.getElementById("topic-grid");
+  grid.innerHTML = "";
+  TOPICS.forEach(t => {
+    const best = getBest(t.id);
+    const total = t.qs.length;
+    const starText = best ? `⭐ ${best}/${total}` : "未挑戰";
+    const div = document.createElement("div");
+    div.className = "topic";
+    div.dataset.topic = t.id;
+    div.innerHTML = `
+      <div class="tbadge" style="background:${t.color}">${t.icon}</div>
+      <div class="tinfo">
+        <div class="tname">${t.name}</div>
+        <div class="tdesc">${t.desc}</div>
+      </div>
+      <div class="tstar ${best ? 'gold' : ''}">${starText}</div>
+    `;
+    div.addEventListener("click", () => openVocab(t.id));
+    grid.appendChild(div);
+  });
+  updateTotalProgress();
+}
+function updateTotalProgress() {
+  const earned = TOPICS.reduce((sum, t) => {
+    const b = getBest(t.id);
+    return sum + (b ? computeStars(b, t.qs.length) : 0);
+  }, 0);
+  const max = TOPICS.length * 3;
+  document.getElementById("total-progress").textContent = `⭐ ${earned} / ${max} 粒星`;
+}
+
+// ============================================================
+// VOCAB (生字卡)
+// ============================================================
+let currentTopic = null;
+function openVocab(id) {
+  currentTopic = TOPICS.find(t => t.id === id);
+  const t = currentTopic;
+
+  document.getElementById("vocab-icon").textContent = t.icon;
+  document.getElementById("vocab-icon").style.background = t.color;
+  document.getElementById("vocab-name").textContent = t.name;
+  document.getElementById("vocab-desc").textContent = t.desc;
+  document.getElementById("vocab-count").textContent = `${t.vocab.length} 個生字`;
+
+  const grid = document.getElementById("vocab-grid");
+  grid.innerHTML = "";
+  t.vocab.forEach(v => {
+    const card = document.createElement("div");
+    card.className = "vcard";
+    card.innerHTML = `
+      <div class="vc-char">${v.c}</div>
+      <div class="vc-sub">${v.sub || ""}</div>
+      <div class="vc-ex">${v.ex || ""}</div>
+    `;
+    card.addEventListener("click", () => {
+      card.classList.add("pop");
+      setTimeout(() => card.classList.remove("pop"), 340);
+    });
+    grid.appendChild(card);
+  });
+
+  showView("vocab-view");
+}
+
+// ============================================================
 // GAME
 // ============================================================
+let currentQs = [], currentIdx = 0, currentScore = 0, answered = false;
 
-let currentTopic = null;
-let currentQs = [];
-let currentIdx = 0;
-let currentScore = 0;
-let answered = false;
-
-function startTopic(id) {
-  currentTopic = TOPICS.find(t => t.id === id);
+function startQuiz() {
   currentQs = [...currentTopic.qs].sort(() => Math.random() - 0.5);
-  currentIdx = 0;
-  currentScore = 0;
-  answered = false;
-  document.getElementById("home-view").classList.add("hidden");
-  document.getElementById("result-view").classList.add("hidden");
-  document.getElementById("game-view").classList.remove("hidden");
+  currentIdx = 0; currentScore = 0; answered = false;
+  showView("game-view");
   renderQuestion();
 }
 
@@ -755,42 +706,31 @@ function renderQuestion() {
   const q = currentQs[currentIdx];
   answered = false;
   document.getElementById("q-counter").textContent = `${currentIdx + 1} / ${currentQs.length}`;
-  const pct = (currentIdx / currentQs.length) * 100;
-  document.getElementById("progress-bar").style.width = pct + "%";
+  document.getElementById("progress-bar").style.width = (currentIdx / currentQs.length) * 100 + "%";
 
-  // Render question body
   const card = document.getElementById("q-card");
   let html = `<div class="qtype-tag">${currentTopic.icon} ${currentTopic.name}</div>`;
   html += `<div class="q-prompt">${q.prompt}</div>`;
-  if (q.display) {
-    html += `<div class="q-char-lg">${q.display}</div>`;
-  }
-  if (q.sub) {
-    html += `<div class="q-jyut">${q.sub}</div>`;
-  }
-  if (q.sentence) {
-    html += `<div class="q-sentence">${q.sentence}</div>`;
-  }
+  if (q.display) html += `<div class="q-char-lg">${q.display}</div>`;
+  if (q.sub) html += `<div class="q-jyut">${q.sub}</div>`;
+  if (q.sentence) html += `<div class="q-sentence">${q.sentence}</div>`;
   if (q.chars) {
     html += `<div class="q-chars-row">` + q.chars.map(c =>
-      `<div class="q-char-card" data-char="${c}">${c}</div>`
-    ).join("") + `</div>`;
+      `<div class="q-char-card">${c}</div>`).join("") + `</div>`;
   }
   card.innerHTML = html;
   card.style.borderTop = `4px solid ${currentTopic.color}`;
 
-  // Render options
   const opts = document.getElementById("options");
   opts.innerHTML = "";
   q.opts.forEach((label, i) => {
     const btn = document.createElement("button");
     btn.className = "option";
-    btn.textContent = label;
     btn.type = "button";
-    btn.addEventListener('click', () => answer(i, btn), { passive: true });
+    btn.textContent = label;
+    btn.addEventListener("click", () => answer(i, btn));
     opts.appendChild(btn);
   });
-
   document.getElementById("feedback").classList.add("hidden");
   document.getElementById("next-btn").classList.add("hidden");
 }
@@ -800,23 +740,20 @@ function answer(i, btn) {
   answered = true;
   const q = currentQs[currentIdx];
   const correct = i === q.a;
+  const allOpts = document.querySelectorAll("#options .option");
   if (correct) {
     currentScore++;
     btn.classList.add("right");
     showFeedback(true, q.opts[q.a]);
     burstConfetti(btn);
   } else {
-    btn.classList.add("wrong");
-    btn.classList.add("shake");
-    // also highlight correct one
-    const opts = document.querySelectorAll("#options .option");
-    opts[q.a].classList.add("right");
-    opts.forEach((o, idx) => { if (idx !== i && idx !== q.a) o.classList.add("dim"); });
+    btn.classList.add("wrong", "shake");
+    allOpts[q.a].classList.add("right");
+    allOpts.forEach((o, idx) => { if (idx !== i && idx !== q.a) o.classList.add("dim"); });
     showFeedback(false, q.opts[q.a]);
   }
   document.getElementById("next-btn").classList.remove("hidden");
 }
-
 function showFeedback(good, ans) {
   const fb = document.getElementById("feedback");
   fb.className = `feedback ${good ? "good" : "bad"}`;
@@ -825,47 +762,27 @@ function showFeedback(good, ans) {
     : `❌ 答錯喇，正確係：<span class="ans">${ans}</span>`;
   fb.classList.remove("hidden");
 }
-
-document.getElementById("next-btn").addEventListener('click', () => {
+function nextQuestion() {
   currentIdx++;
-  if (currentIdx >= currentQs.length) {
-    finishTopic();
-  } else {
-    renderQuestion();
-  }
-});
+  if (currentIdx >= currentQs.length) finishQuiz();
+  else renderQuestion();
+}
 
-function finishTopic() {
+function finishQuiz() {
   setBest(currentTopic.id, currentScore);
   const total = currentQs.length;
   const stars = computeStars(currentScore, total);
-
-  document.getElementById("game-view").classList.add("hidden");
-  document.getElementById("result-view").classList.remove("hidden");
-
+  showView("result-view");
   document.getElementById("r-score").textContent = currentScore;
+  document.getElementById("r-total").textContent = `/ ${total} 分`;
+
   const titleEl = document.getElementById("r-title");
   const subEl = document.getElementById("r-sub");
   const emojiEl = document.getElementById("r-emoji");
-
-  if (stars === 3) {
-    emojiEl.textContent = "🏆";
-    titleEl.textContent = "完美晒！";
-    subEl.textContent = "全部都答啱，太犀利啦！";
-    burstConfettiBig();
-  } else if (stars === 2) {
-    emojiEl.textContent = "🎉";
-    titleEl.textContent = "做得好好！";
-    subEl.textContent = "差少少就滿分啦，加油！";
-  } else if (stars === 1) {
-    emojiEl.textContent = "💪";
-    titleEl.textContent = "完成挑戰";
-    subEl.textContent = "繼續練習會更加熟練！";
-  } else {
-    emojiEl.textContent = "📖";
-    titleEl.textContent = "加油呀";
-    subEl.textContent = "溫多次就會進步！";
-  }
+  if (stars === 3) { emojiEl.textContent = "🏆"; titleEl.textContent = "完美晒！"; subEl.textContent = "全部都答啱，太犀利啦！"; burstConfettiBig(); }
+  else if (stars === 2) { emojiEl.textContent = "🎉"; titleEl.textContent = "做得好好！"; subEl.textContent = "差少少就滿分啦，加油！"; }
+  else if (stars === 1) { emojiEl.textContent = "💪"; titleEl.textContent = "完成挑戰"; subEl.textContent = "繼續練習會更加熟練！"; }
+  else { emojiEl.textContent = "📖"; titleEl.textContent = "加油呀"; subEl.textContent = "溫多次就會進步！"; }
 
   const starsEl = document.getElementById("r-stars");
   starsEl.innerHTML = "";
@@ -878,87 +795,80 @@ function finishTopic() {
 }
 
 // ============================================================
-// CONFETTI — 簡單版
+// VIEW SWITCH
 // ============================================================
+function showView(id) {
+  ["home-view", "vocab-view", "game-view", "result-view"].forEach(v => {
+    document.getElementById(v).classList.toggle("hidden", v !== id);
+  });
+  window.scrollTo(0, 0);
+}
+function goHome() { showView("home-view"); renderHome(); }
 
+// ============================================================
+// CONFETTI
+// ============================================================
+const COLORS = ["#5f9e63","#e08a4e","#f2c14e","#6a9bcc","#d9663f","#8a76c4","#4ecdc4"];
 function burstConfetti(el) {
   const r = el.getBoundingClientRect();
-  const cx = r.left + r.width / 2;
-  const cy = r.top + r.height / 2;
-  const colors = ["#5f9e63","#e08a4e","#f2c14e","#6a9bcc","#d9663f","#8a76c4","#4ecdc4"];
+  const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
   for (let i = 0; i < 12; i++) {
     const p = document.createElement("div");
     p.className = "confetti-piece";
-    p.style.left = cx + "px";
-    p.style.top = cy + "px";
-    p.style.background = colors[Math.floor(Math.random() * colors.length)];
+    p.style.left = cx + "px"; p.style.top = cy + "px";
+    p.style.background = COLORS[i % COLORS.length];
     p.style.borderRadius = Math.random() > 0.5 ? "50%" : "2px";
     document.body.appendChild(p);
-    const angle = (Math.PI * 2 * i) / 12;
-    const dist = 60 + Math.random() * 50;
-    const dx = Math.cos(angle) * dist;
-    const dy = Math.sin(angle) * dist;
+    const angle = (Math.PI * 2 * i) / 12, dist = 60 + Math.random() * 50;
     p.animate([
       { transform: "translate(-50%,-50%) rotate(0)", opacity: 1 },
-      { transform: `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px)) rotate(${360 + Math.random() * 360}deg)`, opacity: 0 }
+      { transform: `translate(calc(-50% + ${Math.cos(angle)*dist}px), calc(-50% + ${Math.sin(angle)*dist}px)) rotate(${360+Math.random()*360}deg)`, opacity: 0 }
     ], { duration: 700, easing: "cubic-bezier(0.16,1,0.3,1)" });
     setTimeout(() => p.remove(), 720);
   }
 }
-
 function burstConfettiBig() {
-  const colors = ["#5f9e63","#e08a4e","#f2c14e","#6a9bcc","#d9663f","#8a76c4","#4ecdc4"];
   for (let i = 0; i < 60; i++) {
     const p = document.createElement("div");
     p.className = "confetti-piece";
-    p.style.left = (Math.random() * 100) + "vw";
-    p.style.top = "-20px";
-    p.style.background = colors[Math.floor(Math.random() * colors.length)];
+    p.style.left = (Math.random() * 100) + "vw"; p.style.top = "-20px";
+    p.style.background = COLORS[i % COLORS.length];
     p.style.borderRadius = Math.random() > 0.5 ? "50%" : "2px";
     p.style.width = (6 + Math.random() * 6) + "px";
     p.style.height = (8 + Math.random() * 10) + "px";
     document.body.appendChild(p);
-    const dx = (Math.random() - 0.5) * 200;
-    const dur = 1200 + Math.random() * 800;
+    const dx = (Math.random() - 0.5) * 200, dur = 1200 + Math.random() * 800;
     p.animate([
-      { transform: `translate(0,0) rotate(0)`, opacity: 1 },
-      { transform: `translate(${dx}px, ${window.innerHeight + 50}px) rotate(${360 * 3}deg)`, opacity: 0.6 }
+      { transform: "translate(0,0) rotate(0)", opacity: 1 },
+      { transform: `translate(${dx}px, ${window.innerHeight + 50}px) rotate(${360*3}deg)`, opacity: 0.6 }
     ], { duration: dur, easing: "cubic-bezier(0.16,1,0.3,1)" });
     setTimeout(() => p.remove(), dur + 100);
   }
 }
 
 // ============================================================
-// NAV
+// BINDINGS
 // ============================================================
-
-document.getElementById("back-btn").addEventListener('click', () => {
-  if (confirm("要離開呢個課題嗎？")) {
-    goHome();
-  }
+document.getElementById("vocab-back").addEventListener("click", goHome);
+document.getElementById("start-quiz-btn").addEventListener("click", startQuiz);
+document.getElementById("next-btn").addEventListener("click", nextQuestion);
+document.getElementById("back-btn").addEventListener("click", () => {
+  if (confirm("要離開呢個挑戰嗎？")) showView("vocab-view");
 });
-document.getElementById("back-home").addEventListener('click', goHome);
-document.getElementById("back-home-2").addEventListener('click', goHome);
-document.getElementById("retry-btn").addEventListener('click', () => startTopic(currentTopic.id));
-document.getElementById("reset-btn").addEventListener('click', () => {
+document.getElementById("back-home").addEventListener("click", goHome);
+document.getElementById("back-home-2").addEventListener("click", goHome);
+document.getElementById("retry-btn").addEventListener("click", startQuiz);
+document.getElementById("reset-btn").addEventListener("click", () => {
   if (confirm("確定要重設所有星星嗎？")) {
-    localStorage.removeItem(STORE_KEY);
+    try { localStorage.removeItem(STORE_KEY); } catch {}
     renderHome();
   }
 });
 
-function goHome() {
-  document.getElementById("game-view").classList.add("hidden");
-  document.getElementById("result-view").classList.add("hidden");
-  document.getElementById("home-view").classList.remove("hidden");
-  renderHome();
-}
-
 // ============================================================
 // BOOT
 // ============================================================
-
-renderHome();
+try { renderHome(); } catch (e) { console.error("renderHome failed:", e); }
 </script>
 </body>
 </html>
