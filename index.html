@@ -528,13 +528,13 @@ const TOPICS = [
     color: "#d9663f",
     vocabLabel: "相似部件",
     vocab: [
-      { c: "灬", sub: "火字底", ex: "燈·熱·燒" },
-      { c: "犬", sub: "反犬旁", ex: "狗·貓·狼" },
-      { c: "瓜", sub: "瓜字旁", ex: "西瓜·木瓜" },
-      { c: "貝", sub: "貝字底", ex: "買·貴·資" },
-      { c: "瓦", sub: "瓦字旁", ex: "瓶·瓷" },
-      { c: "攵", sub: "反文旁", ex: "放·收·政" },
-      { c: "礻", sub: "示字旁", ex: "神·祝·福" }
+      { c: "灬", sub: "火字底", say: "火字底", ex: "燈·熱·燒" },
+      { c: "犬", sub: "反犬旁", say: "反犬旁", ex: "狗·貓·狼" },
+      { c: "瓜", sub: "瓜字旁", say: "瓜字旁", ex: "西瓜·木瓜" },
+      { c: "貝", sub: "貝字底", say: "貝字底", ex: "買·貴·資" },
+      { c: "瓦", sub: "瓦字旁", say: "瓦字旁", ex: "瓶·瓷" },
+      { c: "攵", sub: "反文旁", say: "反文旁", ex: "放·收·政" },
+      { c: "礻", sub: "示字旁", say: "示字旁", ex: "神·祝·福" }
     ],
     qs: [
       { prompt: "邊個係「灬」(火字底)？", chars: ["灬","犬","瓜","貝"], a: 0 },
@@ -611,13 +611,13 @@ const TOPICS = [
     color: "#8a76c4",
     vocabLabel: "部首",
     vocab: [
-      { c: "心", sub: "心字底", ex: "思·想·念" },
-      { c: "宀", sub: "寶蓋頭", ex: "字·安·家" },
-      { c: "亻", sub: "單人旁", ex: "仁·你·他" },
-      { c: "彳", sub: "雙人旁", ex: "行·很·往" },
-      { c: "扌", sub: "提手旁", ex: "提·打·抱" },
-      { c: "艹", sub: "草字頭", ex: "花·草·茶" },
-      { c: "訁", sub: "言字旁", ex: "說·請·話" }
+      { c: "心", sub: "心字底", say: "心字底", ex: "思·想·念" },
+      { c: "宀", sub: "寶蓋頭", say: "寶蓋頭", ex: "字·安·家" },
+      { c: "亻", sub: "單人旁", say: "單人旁", ex: "仁·你·他" },
+      { c: "彳", sub: "雙人旁", say: "雙人旁", ex: "行·很·往" },
+      { c: "扌", sub: "提手旁", say: "提手旁", ex: "提·打·抱" },
+      { c: "艹", sub: "草字頭", say: "草字頭", ex: "花·草·茶" },
+      { c: "訁", sub: "言字旁", say: "言字旁", ex: "說·請·話" }
     ],
     qs: [
       { prompt: "「思」字嘅部首係邊個？", display: "思", opts: ["心字底","寶蓋頭","提手旁","草字頭"], a: 0 },
@@ -829,7 +829,7 @@ function prevStudy() {
 }
 function speakStudy() {
   const v = currentTopic.vocab[studyIdx];
-  const text = v.ex || v.c;
+  const text = v.say || v.c; // 讀個字本身（唔讀例詞/聲調名）
   if (!window.speechSynthesis) {
     // graceful fallback: just reveal
     if (!studyRevealed) { studyRevealed = true; renderStudyCard(); }
