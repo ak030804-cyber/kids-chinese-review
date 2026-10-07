@@ -943,7 +943,14 @@ function renderStudyCard() {
   document.getElementById("study-lbl2").style.display = (sl2 && v.ex) ? "" : "none";
   exEl.style.display = v.ex ? "flex" : "none";
   document.getElementById("study-counter").textContent = `${studyIdx + 1} / ${t.vocab.length}`;
-  document.getElementById("study-reveal").classList.toggle("hidden", !studyRevealed);
+  // 配詞 deck：study-reveal 永遠唔隱藏（保留 chip 可見），其他 deck 維持原 reveal 行為
+  if (t.id === "compound") {
+    document.getElementById("study-reveal").classList.remove("hidden");
+    document.getElementById("study-lbl1").style.display = studyRevealed ? "" : "none";
+    document.getElementById("study-jyut").style.display = studyRevealed ? "" : "none";
+  } else {
+    document.getElementById("study-reveal").classList.toggle("hidden", !studyRevealed);
+  }
   card.classList.toggle("revealed", studyRevealed);
   document.getElementById("study-hint").textContent = studyRevealed ? "" : "撳吓個字開始認";
 }
