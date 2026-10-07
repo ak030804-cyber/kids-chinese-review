@@ -217,8 +217,9 @@ body {
 body.topic-compound #study-char { display: none; }
 body.topic-compound .study-reveal > div:first-child { display: none; }
 body.topic-compound #study-lbl2 { display: none !important; }
-body.topic-compound .study-val2 { margin-top: 16px; flex-direction: column; align-items: center; gap: 10px; }
-body.topic-compound .study-chip { font-size: 30px; padding: 10px 24px; width: 78%; text-align: center; }
+body.topic-compound .study-val2 { margin-top: 24px; flex-direction: column; align-items: center; justify-content: center; min-height: 200px; }
+body.topic-compound .study-chip { font-size: 52px; padding: 14px 28px; width: auto; min-width: 70%; text-align: center; }
+body.topic-compound .study-done { font-size: 32px; font-weight: 800; color: #2c5e36; padding: 24px; }
 .study-card.revealed .study-char { font-size: 64px; }
 .study-card.revealed .study-char[data-len="2"] { font-size: 78px; }
 .study-reveal { margin-top: 12px; animation: pop 0.3s cubic-bezier(0.34,1.56,0.64,1); }
@@ -932,6 +933,43 @@ function openStudy() {
   renderStudyCard();
 }
 
+function renderCompoundChip() {
+  const t = currentTopic;
+  const v = t.vocab[studyIdx];
+  const exEl = document.getElementById("study-ex");
+  const words = v.ex.split(/[·、,]/).map(s => s.trim()).filter(Boolean);
+  const unseenWords = words.filter(w => !getCompoundSeen(t.id, v.c, w));
+  if (unseenWords.length === 0) {
+    // 全部認完
+    exEl.innerHTML = `<div class="study-done">✅ 全部認完！</div>`;
+    if (window.speechSynthesis) {
+      speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance("完成喇");
+      if (ttsVoice) u.voice = ttsVoice;
+      u.lang = "zh-HK";
+      speechSynthesis.speak(u);
+    }
+    return;
+  }
+  const word = unseenWords[Math.floor(Math.random() * unseenWords.length)];
+  exEl.innerHTML = `<span class="study-chip study-chip-next" data-word="${word}">${word}</span>`;
+  const chip = exEl.querySelector(".study-chip");
+  chip.addEventListener("click", (e) => {
+    e.stopPropagation();
+    markCompoundSeen(t.id, v.c, word);
+    if (window.speechSynthesis) {
+      speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(word);
+      if (ttsVoice) u.voice = ttsVoice;
+      u.lang = "zh-HK";
+      u.rate = 0.85;
+      speechSynthesis.speak(u);
+    }
+    chip.classList.add("study-chip-seen", "study-chip-flash");
+    setTimeout(() => renderCompoundChip(), 500);
+  });
+}
+
 function renderStudyCard() {
   const t = currentTopic;
   const v = t.vocab[studyIdx];
@@ -945,12 +983,11 @@ function renderStudyCard() {
   document.getElementById("study-jyut").textContent = v.sub || "";
   // chip-style 配詞：拆 v.ex 入個別 chip element，每個可撳出聲
   const exEl = document.getElementById("study-ex");
-  if (v.ex) {
+  if (t.id === "compound" && v.ex) {
+    // 配詞 deck：一次只認一個 chip（flash card 模式）
+    renderCompoundChip();
+  } else if (v.ex) {
     let words = v.ex.split(/[·、,]/).map(s => s.trim()).filter(Boolean);
-    // 配詞 deck：chip 順序 random shuffle
-    if (t.id === "compound") {
-      words = words.slice().sort(() => Math.random() - 0.5);
-    }
     let firstUnseenIdx = -1;
     const chipsHtml = words.map((w, idx) => {
       const seen = getCompoundSeen(t.id, v.c, w);
@@ -977,11 +1014,9 @@ function renderStudyCard() {
         }
         chip.classList.add("study-chip-flash");
         setTimeout(() => chip.classList.remove("study-chip-flash"), 350);
-        // 搵下一個未 seen 嘅 chip，加 highlight
         const nextChip = exEl.querySelector(".study-chip:not(.study-chip-seen)");
         exEl.querySelectorAll(".study-chip-next").forEach(c => c.classList.remove("study-chip-next"));
         if (nextChip) nextChip.classList.add("study-chip-next");
-        // 全部 seen → 部首 done，播掌聲訊息
         const allChips = exEl.querySelectorAll(".study-chip");
         const allSeen = Array.from(allChips).every(c => c.classList.contains("study-chip-seen"));
         if (allSeen && allChips.length > 0) {
