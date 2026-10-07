@@ -221,9 +221,11 @@ body {
 .study-lbl { font-size: 11.5px; font-weight: 800; color: #fff; background: var(--green); border-radius: 999px; padding: 2px 9px; letter-spacing: 0.04em; }
 .study-val { font-size: 20px; font-weight: 800; color: var(--green-deep); letter-spacing: 0.02em; }
 .study-val2 { font-size: 15px; font-weight: 700; color: var(--muted); line-height: 1.45; display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; margin-top: 4px; }
-.study-chip { display: inline-block; background: #e9f3eb; color: #2c5e36; font-size: 17px; font-weight: 800; padding: 5px 12px; border-radius: 10px; line-height: 1.3; border: 1.5px solid #b8d8c0; cursor: pointer; transition: transform 0.1s, background 0.15s; }
+.study-chip { display: inline-block; background: #e9f3eb; color: #2c5e36; font-size: 17px; font-weight: 800; padding: 5px 12px; border-radius: 10px; line-height: 1.3; border: 1.5px solid #b8d8c0; cursor: pointer; transition: transform 0.1s, background 0.15s, box-shadow 0.2s; }
 .study-chip:active { transform: scale(0.92); background: #c8e0cc; }
 .study-chip-seen { background: #c8e0cc !important; border-color: #6fa975 !important; }
+.study-chip-next { border-color: #f2c14e !important; box-shadow: 0 0 0 3px rgba(242, 193, 78, 0.35); animation: chipring 1.4s ease-in-out infinite; }
+@keyframes chipring { 0%, 100% { transform: scale(1); box-shadow: 0 0 0 3px rgba(242, 193, 78, 0.35); } 50% { transform: scale(1.06); box-shadow: 0 0 0 6px rgba(242, 193, 78, 0.2); } }
 .study-chip-flash { animation: chipflash 0.35s ease-out; }
 @keyframes chipflash { 0% { background: #f2c14e; transform: scale(1.08); } 100% { background: #e9f3eb; transform: scale(1); } }
 .study-hint { color: var(--muted); font-size: 13px; margin-top: 12px; min-height: 18px; font-weight: 700; }
@@ -939,16 +941,21 @@ function renderStudyCard() {
   const exEl = document.getElementById("study-ex");
   if (v.ex) {
     const words = v.ex.split(/[·、,]/).map(s => s.trim()).filter(Boolean);
-    exEl.innerHTML = words.map(w => {
+    let firstUnseenIdx = -1;
+    const chipsHtml = words.map((w, idx) => {
       const seen = getCompoundSeen(t.id, v.c, w);
-      return `<span class="study-chip ${seen ? 'study-chip-seen' : ''}" data-word="${w}">${w}${seen ? ' ✓' : ''}</span>`;
+      if (!seen && firstUnseenIdx === -1) firstUnseenIdx = idx;
+      const isNext = !seen && idx === firstUnseenIdx;
+      return `<span class="study-chip ${seen ? 'study-chip-seen' : ''} ${isNext ? 'study-chip-next' : ''}" data-word="${w}">${w}${seen ? ' ✓' : ''}</span>`;
     }).join("");
+    exEl.innerHTML = chipsHtml;
     exEl.querySelectorAll(".study-chip").forEach(chip => {
       chip.addEventListener("click", (e) => {
         e.stopPropagation();
         const word = chip.dataset.word || chip.textContent;
         markCompoundSeen(t.id, v.c, word);
         chip.classList.add("study-chip-seen");
+        chip.classList.remove("study-chip-next");
         if (!chip.textContent.includes("✓")) chip.textContent = word + " ✓";
         if (window.speechSynthesis) {
           speechSynthesis.cancel();
@@ -960,6 +967,16 @@ function renderStudyCard() {
         }
         chip.classList.add("study-chip-flash");
         setTimeout(() => chip.classList.remove("study-chip-flash"), 350);
+        // 搵下一個未 seen 嘅 chip，加 highlight
+        const nextChip = exEl.querySelector(".study-chip:not(.study-chip-seen)");
+        exEl.querySelectorAll(".study-chip-next").forEach(c => c.classList.remove("study-chip-next"));
+        if (nextChip) nextChip.classList.add("study-chip-next");
+        // 全部 seen → 部首 done，播掌聲訊息
+        const allChips = exEl.querySelectorAll(".study-chip");
+        const allSeen = Array.from(allChips).every(c => c.classList.contains("study-chip-seen"));
+        if (allSeen && allChips.length > 0) {
+          setTimeout(() => { if (window.speechSynthesis) { const u = new SpeechSynthesisUtterance("完成喇"); u.lang = "zh-HK"; speechSynthesis.speak(u); } }, 600);
+        }
       });
     });
   } else {
