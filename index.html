@@ -418,7 +418,7 @@ body {
           <div class="study-line"><span class="study-lbl" id="study-lbl2">例詞</span><span class="study-val2" id="study-ex"></span></div>
         </div>
       </div>
-      <div class="study-hint" id="study-hint">撳吓個字睇配詞</div>
+      <div class="study-hint" id="study-hint">撳下面嘅詞聽讀音</div>
       <button class="speaker" id="study-speak" title="聽讀音">🔊</button>
     </div>
     <div class="study-nav">
@@ -952,7 +952,7 @@ function renderStudyCard() {
     document.getElementById("study-reveal").classList.toggle("hidden", !studyRevealed);
   }
   card.classList.toggle("revealed", studyRevealed);
-  document.getElementById("study-hint").textContent = studyRevealed ? "" : "撳吓個字開始認";
+  document.getElementById("study-hint").textContent = studyRevealed ? "" : "撳下面嘅詞聽讀音";
 }
 
 function revealStudy() {
