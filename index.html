@@ -875,14 +875,10 @@ function openVocab(id) {
   t.vocab.forEach((v, i) => {
     const card = document.createElement("div");
     card.className = "vcard";
-    const words = (v.ex || "").split(/[·、,]/).map(s => s.trim()).filter(Boolean);
-    const totalWords = words.length;
-    const seenCount = words.filter(w => getCompoundSeen(t.id, v.c, w)).length;
-    const done = seenCount === totalWords;
     card.innerHTML = `
       <div class="vc-char">${v.c}</div>
       <div class="vc-sub">${v.sub || ""}</div>
-      <span class="vc-progress ${done ? 'done' : ''}">${done ? '✅' : (seenCount > 0 ? seenCount + ' / ' + totalWords + ' 已認' : '撳入去逐個認 →')}</span>
+      <span class="vc-entry">撳入去逐個認 →</span>
     `;
     card.addEventListener("click", () => { studyIdx = i; openStudy(); });
     card.querySelectorAll(".vc-chip").forEach(chip => {
@@ -938,25 +934,11 @@ function renderCompoundChip() {
   const v = t.vocab[studyIdx];
   const exEl = document.getElementById("study-ex");
   const words = v.ex.split(/[·、,]/).map(s => s.trim()).filter(Boolean);
-  const unseenWords = words.filter(w => !getCompoundSeen(t.id, v.c, w));
-  if (unseenWords.length === 0) {
-    // 全部認完
-    exEl.innerHTML = `<div class="study-done">✅ 全部認完！</div>`;
-    if (window.speechSynthesis) {
-      speechSynthesis.cancel();
-      const u = new SpeechSynthesisUtterance("完成喇");
-      if (ttsVoice) u.voice = ttsVoice;
-      u.lang = "zh-HK";
-      speechSynthesis.speak(u);
-    }
-    return;
-  }
-  const word = unseenWords[Math.floor(Math.random() * unseenWords.length)];
+  const word = words[Math.floor(Math.random() * words.length)];
   exEl.innerHTML = `<span class="study-chip study-chip-next" data-word="${word}">${word}</span>`;
   const chip = exEl.querySelector(".study-chip");
   chip.addEventListener("click", (e) => {
     e.stopPropagation();
-    markCompoundSeen(t.id, v.c, word);
     if (window.speechSynthesis) {
       speechSynthesis.cancel();
       const u = new SpeechSynthesisUtterance(word);
@@ -965,8 +947,8 @@ function renderCompoundChip() {
       u.rate = 0.85;
       speechSynthesis.speak(u);
     }
-    chip.classList.add("study-chip-seen", "study-chip-flash");
-    setTimeout(() => renderCompoundChip(), 500);
+    chip.classList.add("study-chip-flash");
+    setTimeout(() => renderCompoundChip(), 450);
   });
 }
 
