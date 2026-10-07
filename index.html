@@ -934,11 +934,22 @@ function renderCompoundChip() {
   const v = t.vocab[studyIdx];
   const exEl = document.getElementById("study-ex");
   const words = v.ex.split(/[·、,]/).map(s => s.trim()).filter(Boolean);
-  const word = words[Math.floor(Math.random() * words.length)];
+  let pool = words.filter(w => !getCompoundSeen(t.id, v.c, w));
+  if (pool.length === 0) {
+    // 全部認過 → silent reset，重新 random
+    try {
+      const key = STORE_KEY + "_compound";
+      const s = JSON.parse(localStorage.getItem(key) || "{}");
+      if (s[v.c]) { delete s[v.c]; localStorage.setItem(key, JSON.stringify(s)); }
+    } catch {}
+    pool = words;
+  }
+  const word = pool[Math.floor(Math.random() * pool.length)];
   exEl.innerHTML = `<span class="study-chip study-chip-next" data-word="${word}">${word}</span>`;
   const chip = exEl.querySelector(".study-chip");
   chip.addEventListener("click", (e) => {
     e.stopPropagation();
+    markCompoundSeen(t.id, v.c, word);
     if (window.speechSynthesis) {
       speechSynthesis.cancel();
       const u = new SpeechSynthesisUtterance(word);
