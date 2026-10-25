@@ -192,6 +192,23 @@ body {
 
 .vocab-actions { margin-top: 22px; display: grid; gap: 10px; }
 
+/* ---------- 語音診斷 ---------- */
+.iconbtn.warn { background: #fde8e0; color: #c0392b; border-color: #f0b9a8; }
+.voice-warn {
+  background: #fff3e8; border: 2px solid #f0b9a8; color: #a03d28;
+  border-radius: 16px; padding: 14px 16px; font-size: 13.5px; line-height: 1.65;
+  margin: 0 0 14px; font-weight: 700;
+}
+.voice-warn b { color: #7d2d1c; }
+.btn.tiny { padding: 8px 14px; font-size: 13px; border-radius: 12px; margin-top: 10px; display: inline-block; }
+.toast {
+  position: fixed; left: 50%; bottom: 28px; transform: translateX(-50%) translateY(20px);
+  background: #2f3a34; color: #fff; padding: 12px 20px; border-radius: 14px;
+  font-size: 14px; font-weight: 700; opacity: 0; pointer-events: none;
+  transition: all 0.25s; z-index: 99; max-width: 90vw; white-space: pre-line; text-align: center;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
 /* ---------- Study (認字卡) ---------- */
 .study-stage { text-align: center; padding: 6px 0 0; }
 .study-card {
@@ -377,7 +394,13 @@ body.topic-compound .study-done { font-size: 32px; font-weight: 800; color: #2c5
           <div class="name">認字溫習樂園</div>
         </div>
       </div>
+      <button class="iconbtn" id="voice-badge" title="語音狀態">🔊</button>
       <button class="iconbtn" id="reset-btn" title="重設">↻</button>
+    </div>
+
+    <div class="voice-warn hidden" id="voice-warn">
+      <span class="voice-warn-text">⏳ 語音仲未載入，撳下面個掣試下。</span>
+      <button class="btn tiny" id="voice-test-btn">🔊 測試聲音</button>
     </div>
 
     <div class="card hero-card">
@@ -400,6 +423,7 @@ body.topic-compound .study-done { font-size: 32px; font-weight: 800; color: #2c5
     <div class="topbar">
       <button class="backbtn" id="vocab-back">←</button>
       <div style="flex:1"></div>
+      <button class="iconbtn" id="voice-test-btn-2" title="測試聲音">🔊</button>
       <div class="count" id="vocab-count"></div>
     </div>
     <div class="vocab-head">
@@ -420,6 +444,7 @@ body.topic-compound .study-done { font-size: 32px; font-weight: 800; color: #2c5
     <div class="topbar">
       <button class="backbtn" id="study-back">←</button>
       <div style="flex:1"></div>
+      <button class="iconbtn" id="voice-test-btn-3" title="測試聲音">🔊</button>
       <div class="count" id="study-counter"></div>
     </div>
     <div class="study-stage">
@@ -963,16 +988,11 @@ function openVocab(id) {
       chip.addEventListener("click", (e) => {
         e.stopPropagation();
         const word = chip.dataset.word || chip.textContent;
-        if (window.speechSynthesis) {
-          speechSynthesis.cancel();
-          const u = new SpeechSynthesisUtterance(word);
-          if (ttsVoice) u.voice = ttsVoice;
-          u.lang = "zh-HK";
-          u.rate = 0.85;
-          speechSynthesis.speak(u);
-        }
+      if (window.speechSynthesis) {
+        speakWhenReady(word, { rate: 0.85 });
         chip.classList.add("vc-chip-flash");
         setTimeout(() => chip.classList.remove("vc-chip-flash"), 350);
+      }
       });
     });
     grid.appendChild(card);
@@ -986,19 +1006,151 @@ function openVocab(id) {
 // ============================================================
 let studyIdx = 0;
 let studyRevealed = false;
+
+// ============================================================
+// TTS 引擎（穩定版）
+// - Chrome bug：cancel() 之後即刻 speak() 會被靜靜哋吞掉 → 用延遲避開
+// - 語音清單好遲先載入 → 每次發音都重新揀 voice + 等 voice ready
+// - Chrome 15 秒 bug：閒置會靜靜哋死掉 → 定期保活
+// - 提供語音診斷，話畀用戶知裝置到底有冇中文語音
+// ============================================================
 let ttsVoice = null;
+let ttsSeq = 0;
+let autoSpeakOn = true;
+let autoSpeakTimer = null;
+
+function allVoices() {
+  if (!window.speechSynthesis) return [];
+  try { return speechSynthesis.getVoices() || []; } catch (e) { return []; }
+}
+
+// 語音優先次序：香港粵語 > 繁體 > 簡體 > 其他中文
+const VOICE_RANK = [
+  /yue[-_]Hant[-_]HK|yue[-_]HK|粤|粵|cantonese/i,
+  /zh[-_]HK/i,
+  /zh[-_]Hant[-_]HK|zh[-_]Hant|zh[-_]TW|繁體|traditional/i,
+  /zh[-_]Hans|zh[-_]CN|zh[-_]SG|简体|簡體/i,
+  /zh[-_]CMN|cmn/i
+];
 
 function pickVoice() {
-  if (!window.speechSynthesis) return null;
-  const vs = speechSynthesis.getVoices();
-  return vs.find(v => /zh[-_]HK|yue|粵|cantonese/i.test(v.lang + v.name))
-      || vs.find(v => /zh[-_]TW|zh[-_]CN|cmn/i.test(v.lang))
-      || vs.find(v => /zh/i.test(v.lang))
-      || null;
+  const vs = allVoices();
+  if (!vs.length) return null;
+  const isZh = v => /^(zh|yue|cmn)/i.test(v.lang || "") || /chinese|中文|粤|粵|cantonese|mandarin/i.test(v.name || "");
+  const zh = vs.filter(isZh);
+  if (!zh.length) return null;
+  for (const re of VOICE_RANK) {
+    const hit = zh.find(v => re.test((v.lang || "") + " " + (v.name || "")));
+    if (hit) return hit;
+  }
+  return zh[0];
 }
+
 if (window.speechSynthesis) {
-  pickVoice() && (ttsVoice = pickVoice());
-  speechSynthesis.onvoiceschanged = () => { ttsVoice = pickVoice(); };
+  ttsVoice = pickVoice();
+  speechSynthesis.onvoiceschanged = () => { ttsVoice = pickVoice(); updateVoiceBadge(); };
+  // Chrome 15 秒 bug：定期送一個靜音 utterance 保住引擎
+  setInterval(() => {
+    if (!window.speechSynthesis || document.hidden) return;
+    if (speechSynthesis.speaking || speechSynthesis.pending) return;
+    try {
+      const u = new SpeechSynthesisUtterance(" ");
+      u.volume = 0; u.rate = 1;
+      speechSynthesis.speak(u);
+    } catch (e) { /* ignore */ }
+  }, 10000);
+}
+
+// 統一發音入口
+function speak(text, opts) {
+  if (!window.speechSynthesis || !text) return false;
+  opts = opts || {};
+  const u = new SpeechSynthesisUtterance(String(text));
+  const v = pickVoice() || ttsVoice;
+  if (v) { u.voice = v; u.lang = v.lang || "zh-HK"; }
+  else { u.lang = "zh-HK"; }
+  u.rate = opts.rate || 0.85;
+  u.pitch = 1;
+  u.volume = 1;
+  const my = ++ttsSeq;
+  try { speechSynthesis.cancel(); } catch (e) { /* ignore */ }
+  // 避開 Chrome cancel+speak 同一 tick 被吞嘅 bug
+  setTimeout(() => {
+    if (my !== ttsSeq) return;      // 已被新嘅發音取代
+    try { speechSynthesis.speak(u); } catch (e) { /* ignore */ }
+  }, 70);
+  if (opts.onend) { u.onend = opts.onend; u.onerror = opts.onend; }
+  return true;
+}
+
+// 等語音清單載入先發音（頭一次 getVoices() 通常係空嘅）
+function speakWhenReady(text, opts) {
+  if (!window.speechSynthesis) return false;
+  if (allVoices().length) return speak(text, opts);
+  let tries = 0;
+  const iv = setInterval(() => {
+    tries++;
+    if (allVoices().length || tries > 25) {
+      clearInterval(iv);
+      speak(text, opts);
+    }
+  }, 100);
+  return true;
+}
+
+// 語音診斷：畀用戶知裝置到底有咩語音
+function voiceStatus() {
+  if (!window.speechSynthesis) return { ok: false, code: "no-api", msg: "呢個瀏覽器唔支援語音合成" };
+  const vs = allVoices();
+  if (!vs.length) return { ok: false, code: "no-voices", msg: "語音清單仲未載入" };
+  const v = pickVoice();
+  if (!v) return { ok: false, code: "no-zh", msg: "裝置冇中文語音（需要粵語／中文語音包）", total: vs.length };
+  return { ok: true, voice: v, msg: `粵語語音：${v.name} (${v.lang})`, total: vs.length };
+}
+
+// 頂部提示：冇中文語音就話畀用戶知
+function updateVoiceBadge() {
+  const el = document.getElementById("voice-badge");
+  if (!el) return;
+  const st = voiceStatus();
+  if (st.ok) {
+    el.classList.remove("warn");
+    el.title = st.msg;
+    el.textContent = "🔊";
+  } else if (st.code === "no-zh" || st.code === "no-api") {
+    el.classList.add("warn");
+    el.title = st.msg;
+    el.textContent = "🔇";
+  } else {
+    el.classList.remove("warn");
+    el.title = st.msg;
+    el.textContent = "🔊";
+  }
+}
+
+// 撳測試掣：直接話畀用戶知聲音 work 唔 work
+function testVoice() {
+  const st = voiceStatus();
+  if (!st.ok) {
+    toast(st.code === "no-zh"
+      ? "🔇 呢部裝置未裝中文語音！\n設定 › 語音 › 語音包 › 裝「粵語」"
+      : "🔇 語音未 ready，撳多一下試下");
+    updateVoiceBadge();
+    return;
+  }
+  speakWhenReady("天鵝，健康，早睡早起", { rate: 0.8 });
+  toast("🔊 測試：" + st.msg);
+}
+
+// 畫面提示
+let toastTimer = null;
+function toast(msg) {
+  const el = document.getElementById("toast");
+  if (!el) return;
+  el.textContent = msg;
+  el.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove("show"), 3200);
 }
 
 function openStudy() {
@@ -1029,12 +1181,7 @@ function renderCompoundChip() {
     e.stopPropagation();
     markCompoundSeen(t.id, v.c, word);
     if (window.speechSynthesis) {
-      speechSynthesis.cancel();
-      const u = new SpeechSynthesisUtterance(word);
-      if (ttsVoice) u.voice = ttsVoice;
-      u.lang = "zh-HK";
-      u.rate = 0.85;
-      speechSynthesis.speak(u);
+      speakWhenReady(word, { rate: 0.85 });
     }
     chip.classList.add("study-chip-flash");
     setTimeout(() => renderCompoundChip(), 450);
@@ -1076,12 +1223,7 @@ function renderStudyCard() {
         chip.classList.remove("study-chip-next");
         if (!chip.textContent.includes("✓")) chip.textContent = word + " ✓";
         if (window.speechSynthesis) {
-          speechSynthesis.cancel();
-          const u = new SpeechSynthesisUtterance(word);
-          if (ttsVoice) u.voice = ttsVoice;
-          u.lang = "zh-HK";
-          u.rate = 0.85;
-          speechSynthesis.speak(u);
+          speakWhenReady(word, { rate: 0.85 });
         }
         chip.classList.add("study-chip-flash");
         setTimeout(() => chip.classList.remove("study-chip-flash"), 350);
@@ -1091,7 +1233,7 @@ function renderStudyCard() {
         const allChips = exEl.querySelectorAll(".study-chip");
         const allSeen = Array.from(allChips).every(c => c.classList.contains("study-chip-seen"));
         if (allSeen && allChips.length > 0) {
-          setTimeout(() => { if (window.speechSynthesis) { const u = new SpeechSynthesisUtterance("完成喇"); u.lang = "zh-HK"; speechSynthesis.speak(u); } }, 600);
+          setTimeout(() => { speakWhenReady("完成喇", { rate: 0.9 }); }, 600);
         }
       });
     });
@@ -1116,6 +1258,14 @@ function renderStudyCard() {
   }
   card.classList.toggle("revealed", studyRevealed);
   document.getElementById("study-hint").textContent = studyRevealed ? "" : "撳下面嘅詞聽讀音";
+  // 認字卡打開就自動讀一次（細路唔使撳）
+  if (window.speechSynthesis && autoSpeakOn) {
+    const sp = document.getElementById("study-speak");
+    sp.classList.add("playing");
+    speakWhenReady(v.say || v.c, { rate: 0.8 });
+    clearTimeout(autoSpeakTimer);
+    autoSpeakTimer = setTimeout(() => sp.classList.remove("playing"), 1800);
+  }
 }
 
 function revealStudy() {
@@ -1132,18 +1282,6 @@ function prevStudy() {
   studyRevealed = false;
   renderStudyCard();
 }
-function speak(text) {
-  if (!window.speechSynthesis || !text) return false;
-  try {
-    speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance(text);
-    u.lang = "zh-HK";
-    u.rate = 0.8;
-    if (ttsVoice) u.voice = ttsVoice;
-    speechSynthesis.speak(u);
-    return true;
-  } catch (e) { return false; }
-}
 function speakStudy() {
   const v = currentTopic.vocab[studyIdx];
   const text = v.say || v.c; // 讀個字本身（唔讀例詞/聲調名）
@@ -1151,18 +1289,14 @@ function speakStudy() {
     if (!studyRevealed) { studyRevealed = true; renderStudyCard(); }
     return;
   }
-  try {
-    speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance(text);
-    u.lang = "zh-HK";
-    u.rate = 0.8;
-    if (ttsVoice) u.voice = ttsVoice;
-    const sp = document.getElementById("study-speak");
-    sp.classList.add("playing");
-    u.onend = () => sp.classList.remove("playing");
-    u.onerror = () => sp.classList.remove("playing");
-    speechSynthesis.speak(u);
-  } catch (e) { /* ignore */ }
+  const sp = document.getElementById("study-speak");
+  sp.classList.add("playing");
+  speakWhenReady(text, { rate: 0.8, onend: () => sp.classList.remove("playing") });
+  // 防止發音被取代時動畫卡住
+  clearTimeout(autoSpeakTimer);
+  autoSpeakTimer = setTimeout(() => sp.classList.remove("playing"), 2500);
+  // 冇語音都照樣揭卡（至少睇得到讀音）
+  setTimeout(() => { if (!studyRevealed) { studyRevealed = true; renderStudyCard(); } }, 300);
 }
 
 // ============================================================
@@ -1208,7 +1342,13 @@ function renderQuestion() {
   card.style.borderTop = `4px solid ${currentTopic.color}`;
   if (q.audio) {
     const qs = document.getElementById("q-speak");
-    if (qs) qs.addEventListener("click", () => speak(q.audio));
+    if (qs) qs.addEventListener("click", () => {
+      speakWhenReady(q.audio, { rate: 0.8 });
+      qs.classList.add("playing");
+      setTimeout(() => qs.classList.remove("playing"), 1200);
+    });
+    // 自動讀一次出聲（等語音 ready），細路唔使撳
+    setTimeout(() => speakWhenReady(q.audio, { rate: 0.8 }), 250);
   }
 
   const opts = document.getElementById("options");
@@ -1361,10 +1501,45 @@ document.getElementById("reset-btn").addEventListener("click", () => {
   }
 });
 
+// ---------- 語音診斷掣 ----------
+["voice-test-btn", "voice-test-btn-2", "voice-test-btn-3"].forEach(id => {
+  const el = document.getElementById(id);
+  if (el) el.addEventListener("click", testVoice);
+});
+document.getElementById("voice-badge").addEventListener("click", testVoice);
+
+// 語音狀態：載入時 + 每次入 home 都檢查
+function refreshVoiceUI() {
+  updateVoiceBadge();
+  const st = voiceStatus();
+  const warn = document.getElementById("voice-warn");
+  if (!warn) return;
+  const txt = warn.querySelector(".voice-warn-text");
+  if (st.ok) {
+    warn.classList.add("hidden");
+  } else {
+    warn.classList.remove("hidden");
+    if (txt) {
+      txt.innerHTML = st.code === "no-zh"
+        ? "🔇 呢部裝置未裝中文語音，聽唔到讀音。<br><b>設定 › 語音 › 語音包 › 裝「粵語」</b>，再撳下面個掣測試。"
+        : st.code === "no-api"
+          ? "🔇 呢個瀏覽器唔支援語音合成，換 Chrome / Safari 試下。"
+          : "⏳ 語音仲未載入，撳下面個掣試下。";
+    }
+  }
+}
+refreshVoiceUI();
+if (window.speechSynthesis) {
+  speechSynthesis.addEventListener?.("voiceschanged", refreshVoiceUI);
+  setTimeout(refreshVoiceUI, 800);
+  setTimeout(refreshVoiceUI, 2500);
+}
+
 // ============================================================
 // BOOT
 // ============================================================
 try { renderHome(); } catch (e) { console.error("renderHome failed:", e); }
 </script>
+<div class="toast" id="toast"></div>
 </body>
 </html>
