@@ -769,7 +769,83 @@ CHINA_WORDS.forEach(([w, j], i) => {
 
 TOPICS.unshift(MYCHINA);
 
+// ============================================================
+// 健康生活 — 認讀生字（27 個詞語，來自課堂 worksheet）
+// ============================================================
+const HEALTH_TOPIC = {
+  id: "health",
+  name: "認讀生字",
+  desc: "健康生活 · 27 個生字詞語",
+  icon: "🌱",
+  color: "#3f9e6b",
+  vocabLabel: "生字詞語",
+  subLabel: "粵拼",
+  exLabel: "例句",
+  vocab: [],
+  qs: []
+};
+
+const HEALTH_WORDS = [
+  ["天鵝","tin¹ ngo⁴","天鵝湖"],
+  ["失敗","sai¹ bai⁶","唔好怕失敗"],
+  ["早餐","zou² caan¹","食早餐"],
+  ["午餐","ng⁵ caan¹","食午餐"],
+  ["晚餐","maan⁵ caan¹","食晚餐"],
+  ["生病","saang¹ seng¹","生病要休息"],
+  ["食物","sing⁶ mut⁶","食物唔可以太鹹"],
+  ["蔬菜","soeng¹ coi³","多食蔬菜"],
+  ["休息","jau¹ sik¹","適當休息"],
+  ["強壯","koeng⁴ zong³","身體強壯"],
+  ["愉快","jyu⁴ faai³","心情愉快"],
+  ["拍手","paak³ sau²","大家拍手"],
+  ["糖","tong²","糖果"],
+  ["熱身","jit⁶ san¹","運動前熱身"],
+  ["跳舞","tiu⁵ dou³","一齊跳舞"],
+  ["跑步","paou² bou⁶","每日跑步"],
+  ["游泳","jau⁴ jau²","學游泳"],
+  ["溜冰","lau⁴ bing¹","溜冰好犀利"],
+  ["踢球","taak³ kei⁴","一齊踢球"],
+  ["拍球","paak³ kau⁴","拍球比賽"],
+  ["跳繩","tiu⁵ sing⁴","跳繩練習"],
+  ["健康","gin⁶ hong⁶","身體健康"],
+  ["時鐘","si⁴ zung¹","睇時鐘"],
+  ["三明治","saam¹ zing⁴ tai⁴","食三明治"],
+  ["做運動","zou⁶ jyun⁶ dung⁶","多啲做運動"],
+  ["踏單車","daap⁶ daan¹ ce¹","踏單車去公園"],
+  ["早睡早起","zou⁴ seoi³ zou² hei²","早睡早起身體好"]
+];
+
+HEALTH_WORDS.forEach(([c, j, ex]) => HEALTH_TOPIC.vocab.push({ c, sub: j, ex }));
+
+// 詞語聽音認字問題（隨機 3 個干擾項）
+HEALTH_WORDS.forEach(([w, j], i) => {
+  const others = HEALTH_WORDS
+    .filter((_, k) => k !== i)
+    .map(x => x[0])
+    .sort(() => Math.random() - 0.5)
+    .slice(0, 3);
+  const opts = [w, ...others].sort(() => Math.random() - 0.5);
+  HEALTH_TOPIC.qs.push({ audio: w, jyut: j, prompt: "聽吓係邊個詞語？", opts, a: opts.indexOf(w) });
+});
+
+// 生字卡：每個詞語加多一題「揀啱意思」
+HEALTH_WORDS.forEach(([w, j, ex], i) => {
+  const others = HEALTH_WORDS
+    .filter((_, k) => k !== i)
+    .map(x => x[2])
+    .sort(() => Math.random() - 0.5)
+    .slice(0, 3);
+  const opts = [ex, ...others].sort(() => Math.random() - 0.5);
+  HEALTH_TOPIC.qs.push({ display: w, sub: j, prompt: "「" + w + "」係咩意思？", opts, a: opts.indexOf(ex) });
+});
+
+TOPICS.splice(1, 0, HEALTH_TOPIC);
+
 const STAR_THRESHOLDS = [0.95, 0.75, 0.5];
+
+// 每個課題實際出多少題（startQuiz 最多抽 10 題）
+const QUIZ_CAP = 10;
+function quizTotal(t) { return Math.min(t.qs.length, QUIZ_CAP); }
 
 // ============================================================
 // STATE
@@ -827,7 +903,7 @@ function renderHome() {
   grid.innerHTML = "";
   TOPICS.forEach(t => {
     const best = getBest(t.id);
-    const total = t.qs.length;
+    const total = quizTotal(t);
     const starText = best ? `⭐ ${best}/${total}` : "未挑戰";
     const div = document.createElement("div");
     div.className = "topic";
@@ -848,7 +924,7 @@ function renderHome() {
 function updateTotalProgress() {
   const earned = TOPICS.reduce((sum, t) => {
     const b = getBest(t.id);
-    return sum + (b ? computeStars(b, t.qs.length) : 0);
+    return sum + (b ? computeStars(b, quizTotal(t)) : 0);
   }, 0);
   const max = TOPICS.length * 3;
   document.getElementById("total-progress").textContent = `⭐ ${earned} / ${max} 粒星`;
@@ -875,8 +951,10 @@ function openVocab(id) {
   t.vocab.forEach((v, i) => {
     const card = document.createElement("div");
     card.className = "vcard";
+    const vlen = (v.c || "").length;
+    const vsize = vlen === 1 ? 56 : vlen === 2 ? 34 : vlen === 3 ? 25 : 21;
     card.innerHTML = `
-      <div class="vc-char">${v.c}</div>
+      <div class="vc-char" style="font-size:${vsize}px">${v.c}</div>
       <div class="vc-sub">${v.sub || ""}</div>
       <span class="vc-entry">撳入去逐個認 →</span>
     `;
@@ -1094,7 +1172,7 @@ let currentQs = [], currentIdx = 0, currentScore = 0, answered = false;
 
 function startQuiz() {
   let qs = [...currentTopic.qs].sort(() => Math.random() - 0.5);
-  if (qs.length > 10) qs = qs.slice(0, 10); // 綜合課題限 10 題
+  if (qs.length > QUIZ_CAP) qs = qs.slice(0, QUIZ_CAP); // 綜合課題限 10 題
   currentQs = qs;
   currentIdx = 0; currentScore = 0; answered = false;
   showView("game-view");
