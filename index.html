@@ -988,7 +988,8 @@ function openVocab(id) {
       chip.addEventListener("click", (e) => {
         e.stopPropagation();
         const word = chip.dataset.word || chip.textContent;
-      if (window.speechSynthesis) {
+      {
+        unlockAudio();
         speakWhenReady(word, { rate: 0.85 });
         chip.classList.add("vc-chip-flash");
         setTimeout(() => chip.classList.remove("vc-chip-flash"), 350);
@@ -1008,16 +1009,59 @@ let studyIdx = 0;
 let studyRevealed = false;
 
 // ============================================================
-// TTS 引擎（穩定版）
-// - Chrome bug：cancel() 之後即刻 speak() 會被靜靜哋吞掉 → 用延遲避開
-// - 語音清單好遲先載入 → 每次發音都重新揀 voice + 等 voice ready
-// - Chrome 15 秒 bug：閒置會靜靜哋死掉 → 定期保活
-// - 提供語音診斷，話畀用戶知裝置到底有冇中文語音
+// 語音引擎（音檔優先）
+// 1️⃣ 首選：預生成嘅粵語 MP3 音檔（audio/manifest.json）
+//    → 唔靠任何裝置語音引擎，Telegram 內置瀏覽器 / 無 TTS 機都照讀
+// 2️⃣ 後備：系統 speechSynthesis（如果音檔缺失）
+// 3️⃣ iOS 解鎖：第一次點擊時播一個靜音 WAV，之後程式化播放先會被允許
 // ============================================================
 let ttsVoice = null;
 let ttsSeq = 0;
 let autoSpeakOn = true;
 let autoSpeakTimer = null;
+
+let AUDIO_MAP = {};        // 文字 -> 音檔路徑
+let audioReady = false;    // manifest 載入完未
+let curAudio = null;       // 現時播放緊嘅音檔
+let audioUnlocked = false; // iOS 解鎖
+const SILENCE_URL = "data:audio/wav;base64,UklGRkQDAABXQVZFZm10IBAAAAABAAEAQB8AAIA+AAACABAAZGF0YSADAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==";
+
+// 載入音檔清單
+function loadAudioMap() {
+  if (typeof fetch !== "function") { audioReady = true; return Promise.resolve(); }
+  return fetch("audio/manifest.json", { cache: "no-cache" })
+    .then(r => (r.ok ? r.json() : {}))
+    .then(m => { AUDIO_MAP = m || {}; audioReady = true; })
+    .catch(() => { audioReady = true; });
+}
+
+// iOS / 部分 Android：第一次必須由用戶手勢觸發先播到聲
+function unlockAudio() {
+  if (audioUnlocked) return;
+  audioUnlocked = true;
+  try {
+    const a = new Audio(SILENCE_URL);
+    a.volume = 0;
+    const p = a.play();
+    if (p && p.catch) p.catch(() => {});
+  } catch (e) { /* ignore */ }
+}
+if (document.addEventListener) {
+  ["pointerdown", "touchstart", "mousedown", "keydown"].forEach(ev =>
+    document.addEventListener(ev, unlockAudio, { once: false, passive: true }));
+}
+
+// 有冇任何發聲能力（音檔 或 系統語音）
+function canSpeak() {
+  return Object.keys(AUDIO_MAP).length > 0 || !!window.speechSynthesis;
+}
+
+// 預載入（令播放零延遲）
+function preloadAudio(text) {
+  const f = AUDIO_MAP[String(text)];
+  if (!f) return;
+  try { const a = new Audio(f); a.preload = "auto"; a.load(); } catch (e) {}
+}
 
 function allVoices() {
   if (!window.speechSynthesis) return [];
@@ -1061,8 +1105,8 @@ if (window.speechSynthesis) {
   }, 10000);
 }
 
-// 統一發音入口
-function speak(text, opts) {
+// 後備：系統語音引擎
+function fallbackSpeak(text, opts) {
   if (!window.speechSynthesis || !text) return false;
   opts = opts || {};
   const u = new SpeechSynthesisUtterance(String(text));
@@ -1083,32 +1127,68 @@ function speak(text, opts) {
   return true;
 }
 
-// 等語音清單載入先發音（頭一次 getVoices() 通常係空嘅）
+// 統一發音入口：音檔優先，冇音檔先 fallback 系統語音
+function speak(text, opts) {
+  if (!text) return false;
+  opts = opts || {};
+  const key = String(text);
+  const file = AUDIO_MAP[key];
+  if (file) {
+    try {
+      if (curAudio) { try { curAudio.pause(); } catch (e) {} }
+      const a = new Audio(file);
+      a.volume = opts.volume === undefined ? 1 : opts.volume;
+      curAudio = a;
+      const p = a.play();
+      if (p && p.then) {
+        p.then(() => { if (opts.onend) opts.onend(); })
+         .catch(() => {
+           if (opts.onend) opts.onend();
+           fallbackSpeak(key, opts);   // 音檔播唔到就改用系統語音
+         });
+      }
+      return true;
+    } catch (e) { /* fall through */ }
+  }
+  return fallbackSpeak(key, opts);
+}
+
+// 等 manifest 載入完先發音（頭一次會用系統語音，之後就用音檔）
 function speakWhenReady(text, opts) {
-  if (!window.speechSynthesis) return false;
-  if (allVoices().length) return speak(text, opts);
+  if (!text) return false;
+  if (audioReady) return speak(text, opts);
   let tries = 0;
   const iv = setInterval(() => {
     tries++;
-    if (allVoices().length || tries > 25) {
+    if (audioReady || tries > 50) {
       clearInterval(iv);
       speak(text, opts);
     }
-  }, 100);
+  }, 40);
   return true;
 }
 
-// 語音診斷：畀用戶知裝置到底有咩語音
+// 語音診斷：音檔（主）→ 系統語音（後備）
 function voiceStatus() {
+  const nAudio = Object.keys(AUDIO_MAP).length;
+  const sysOk = (() => {
+    if (!window.speechSynthesis) return false;
+    const vs = allVoices();
+    if (!vs.length) return false;
+    return !!pickVoice();
+  })();
+  if (nAudio > 0) {
+    return { ok: true, mode: "file", count: nAudio, sysOk,
+             msg: `粵語音檔 ${nAudio} 條（已就緒）` + (sysOk ? " · 系統語音可用" : "") };
+  }
   if (!window.speechSynthesis) return { ok: false, code: "no-api", msg: "呢個瀏覽器唔支援語音合成" };
-  const vs = allVoices();
-  if (!vs.length) return { ok: false, code: "no-voices", msg: "語音清單仲未載入" };
+  if (!allVoices().length) return { ok: false, code: "no-voices", msg: "語音清單仲未載入" };
   const v = pickVoice();
-  if (!v) return { ok: false, code: "no-zh", msg: "裝置冇中文語音（需要粵語／中文語音包）", total: vs.length };
-  return { ok: true, voice: v, msg: `粵語語音：${v.name} (${v.lang})`, total: vs.length };
+  if (!v) return { ok: false, code: "no-zh", msg: "裝置冇中文語音（需要粵語／中文語音包）", total: allVoices().length };
+  return { ok: true, mode: "sys", voice: v, msg: `粵語語音：${v.name} (${v.lang})`, total: allVoices().length };
 }
 
-// 頂部提示：冇中文語音就話畀用戶知
+// 頂部提示：冇音檔又冇中文語音就話畀用戶知
 function updateVoiceBadge() {
   const el = document.getElementById("voice-badge");
   if (!el) return;
@@ -1116,7 +1196,7 @@ function updateVoiceBadge() {
   if (st.ok) {
     el.classList.remove("warn");
     el.title = st.msg;
-    el.textContent = "🔊";
+    el.textContent = st.mode === "file" ? "🎧" : "🔊";
   } else if (st.code === "no-zh" || st.code === "no-api") {
     el.classList.add("warn");
     el.title = st.msg;
@@ -1138,6 +1218,7 @@ function testVoice() {
     updateVoiceBadge();
     return;
   }
+  unlockAudio();
   speakWhenReady("天鵝，健康，早睡早起", { rate: 0.8 });
   toast("🔊 測試：" + st.msg);
 }
@@ -1180,9 +1261,8 @@ function renderCompoundChip() {
   chip.addEventListener("click", (e) => {
     e.stopPropagation();
     markCompoundSeen(t.id, v.c, word);
-    if (window.speechSynthesis) {
-      speakWhenReady(word, { rate: 0.85 });
-    }
+    unlockAudio();
+    speakWhenReady(word, { rate: 0.85 });
     chip.classList.add("study-chip-flash");
     setTimeout(() => renderCompoundChip(), 450);
   });
@@ -1222,9 +1302,8 @@ function renderStudyCard() {
         chip.classList.add("study-chip-seen");
         chip.classList.remove("study-chip-next");
         if (!chip.textContent.includes("✓")) chip.textContent = word + " ✓";
-        if (window.speechSynthesis) {
-          speakWhenReady(word, { rate: 0.85 });
-        }
+        unlockAudio();
+        speakWhenReady(word, { rate: 0.85 });
         chip.classList.add("study-chip-flash");
         setTimeout(() => chip.classList.remove("study-chip-flash"), 350);
         const nextChip = exEl.querySelector(".study-chip:not(.study-chip-seen)");
@@ -1259,13 +1338,16 @@ function renderStudyCard() {
   card.classList.toggle("revealed", studyRevealed);
   document.getElementById("study-hint").textContent = studyRevealed ? "" : "撳下面嘅詞聽讀音";
   // 認字卡打開就自動讀一次（細路唔使撳）
-  if (window.speechSynthesis && autoSpeakOn) {
+  if (canSpeak() && autoSpeakOn) {
     const sp = document.getElementById("study-speak");
     sp.classList.add("playing");
     speakWhenReady(v.say || v.c, { rate: 0.8 });
     clearTimeout(autoSpeakTimer);
     autoSpeakTimer = setTimeout(() => sp.classList.remove("playing"), 1800);
   }
+  // 預載入下一張卡 + 當前張嘅音檔，播放零延遲
+  preloadAudio(v.say || v.c);
+  if (t.vocab[studyIdx + 1]) preloadAudio(t.vocab[studyIdx + 1].say || t.vocab[studyIdx + 1].c);
 }
 
 function revealStudy() {
@@ -1285,7 +1367,7 @@ function prevStudy() {
 function speakStudy() {
   const v = currentTopic.vocab[studyIdx];
   const text = v.say || v.c; // 讀個字本身（唔讀例詞/聲調名）
-  if (!window.speechSynthesis) {
+  if (!canSpeak()) {
     if (!studyRevealed) { studyRevealed = true; renderStudyCard(); }
     return;
   }
@@ -1330,7 +1412,7 @@ function renderQuestion() {
       `<div class="q-char-card">${c}</div>`).join("") + `</div>`;
   }
   if (q.audio) {
-    if (window.speechSynthesis) {
+    if (canSpeak()) {
       html += `<button class="speaker" id="q-speak" style="margin:8px auto 2px">🔊</button>`;
       html += `<div class="study-hint">撳掣聽讀音（可再撳）</div>`;
     } else {
@@ -1524,7 +1606,7 @@ function refreshVoiceUI() {
         ? "🔇 呢部裝置未裝中文語音，聽唔到讀音。<br><b>設定 › 語音 › 語音包 › 裝「粵語」</b>，再撳下面個掣測試。"
         : st.code === "no-api"
           ? "🔇 呢個瀏覽器唔支援語音合成，換 Chrome / Safari 試下。"
-          : "⏳ 語音仲未載入，撳下面個掣試下。";
+          : "⏳ 音檔同語音仲未載入，撳下面個掣試下。";
     }
   }
 }
@@ -1538,6 +1620,11 @@ if (window.speechSynthesis) {
 // ============================================================
 // BOOT
 // ============================================================
+// 先載入音檔清單，之後先開始出聲（保證一開始就用音檔）
+loadAudioMap().then(() => {
+  refreshVoiceUI();
+  try { renderHome(); } catch (e) { console.error("renderHome failed:", e); }
+});
 try { renderHome(); } catch (e) { console.error("renderHome failed:", e); }
 </script>
 <div class="toast" id="toast"></div>
